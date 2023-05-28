@@ -21,7 +21,6 @@
 					<th>Description</th>
 					<th>Address</th>
 					<th>Nearest Public Transport</th>
-					<th>View Reviews</th>
 					<th>Time Slots</th>
 					<th>Time Slot ID</th>
 					<th>Number of People Desired</th>
@@ -62,7 +61,6 @@
 					<td>{{ item.description }}</td>
 					<td>{{ item.address }}</td>
 					<td>{{ item.nearest_transport }}</td>
-					<td><a class="waves-effect waves-light btn" href="/view-reviews/{{ loop.index }}">Reviews</a></td>
 					<td>
 						{% if item.timeslots %}
 						  <ul class="collapsible" data-collapsible="expandable">
