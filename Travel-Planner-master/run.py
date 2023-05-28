@@ -10,7 +10,7 @@ import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
-locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8') # To get money formatting
+# locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8') # To get money formatting
 
 #####################################################################
 #                          SQL Queries                              #
@@ -511,5 +511,5 @@ if __name__ == '__main__':
 	# Make sure your database is started before running run.py
 	db_name = 'team1'
 	db = pymysql.connect(host='localhost', user='root', passwd=db_pass, db=db_name)
-	app.run(debug=True)
+	app.run(debug=True, host='0.0.0.0', port=5000)
 	db.close()
