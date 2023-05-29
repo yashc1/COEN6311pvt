@@ -1,3 +1,4 @@
+from src.flight import Flight
 from flask import Flask, flash, render_template, request, redirect, session, url_for
 from flask_wtf import Form
 from wtforms import StringField
@@ -54,7 +55,6 @@ def home():
 	# Disallow unlogged in users from requesting homepage.
 	if 'username' not in session or session['username'] == '':
 		return redirect(url_for('index'))
-
 	return create_trip(no_error=True)
 
 #####################################################################
@@ -94,6 +94,46 @@ def make_admin(username):
 	db.commit()
 
 	return redirect(url_for('home'))
+
+@app.route('/flight/<int:flight_id>')
+def get_flight(flight_id):
+    flight = Flight.get_flight_by_id(flight_id)
+    if flight:
+        return render_template('flight.html', flight=flight)
+    return "Flight not found."
+
+@app.route('/flight/create', methods=['GET', 'POST'])
+def create_flight():
+    if request.method == 'POST':
+        name = request.form['name']
+        origin = request.form['origin']
+        destination = request.form['destination']
+        flight = Flight(None, name, origin, destination)
+        flight.save()
+        return redirect('/')
+    return render_template('create_flight.html')
+
+@app.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
+def edit_flight(flight_id):
+    flight = Flight.get_flight_by_id(flight_id)
+    if flight:
+        if request.method == 'POST':
+            flight.name = request.form['name']
+            flight.origin = request.form['origin']
+            flight.destination = request.form['destination']
+            flight.update()
+            return redirect('/')
+        return render_template('edit_flight.html', flight=flight)
+    return "Flight not found."
+
+@app.route('/flight/delete/<int:flight_id>')
+def delete_flight(flight_id):
+    flight = Flight.get_flight_by_id(flight_id)
+    if flight:
+        flight.delete()
+        return redirect('/')
+    return "Flight not found."
+
 
 #####################################################################
 #                        LOGIN / REGISTRATION                       #
@@ -506,7 +546,7 @@ def remove_from_trip(activity_id):
 if __name__ == '__main__':
 
 	# Note: If your database uses a different password, enter it here.
-	db_pass = ''
+	db_pass = 'rootpass'
 
 	# Make sure your database is started before running run.py
 	db_name = 'team1'
