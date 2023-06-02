@@ -173,3 +173,19 @@ CREATE TABLE IF NOT EXISTS reserves (
 		ON DELETE CASCADE
 		ON UPDATE CASCADE
 );
+
+-- # CREATE SQL SCHEMA FOR FLIGHTS
+DROP TABLE IF EXISTS flights;
+CREATE TABLE IF NOT EXISTS flights (
+
+	flight_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	flight_number VARCHAR(10) NOT NULL,
+	airline_name VARCHAR(50) NOT NULL,
+	departure_date VARCHAR(50) ,
+	departure_time VARCHAR(50) ,
+	departure_airport VARCHAR(50) NOT NULL,
+	arrival_airport VARCHAR(50) NOT NULL,
+	duration INTEGER NOT NULL,
+	price DOUBLE PRECISION NOT NULL
+);
+

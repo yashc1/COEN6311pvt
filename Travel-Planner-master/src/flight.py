@@ -1,15 +1,23 @@
-
+from src.database import Database
 
 class Flight:
-    def __init__(self, flight_number, airline, departure_airport, departure_datetime, arrival_airport, duration, db, cursor):
+    def __init__(self, airline_name,flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price):
         self.flight_number = flight_number
-        self.airline = airline
+        self.airline_name = airline_name
         self.departure_airport = departure_airport
-        self.departure_datetime = departure_datetime
+        self.departure_time = departure_time
+        self.departure_date = departure_date
         self.arrival_airport = arrival_airport
         self.duration = duration
-        self.db = db
-        self.cursor = cursor
+        self.price = price
+        self.db = Database().get_db()
+        self.cursor = self.db.cursor()
+
+    def check_sql_string(self, sql, values):
+        unique = "%PARAMETER%"
+        sql = sql.replace("?", unique)
+        for v in values: sql = sql.replace(unique, repr(v), 1)
+        return sql
 
     def get_all_flights(self):
         query = "SELECT * FROM flights"
@@ -29,10 +37,12 @@ class Flight:
         return None
 
     def save(self):
-        query = "INSERT INTO flights (flight_number, airline, departure_airport, departure_datetime, " \
-                "arrival_airport, duration) VALUES (%s, %s, %s, %s, %s, %s)"
-        values = (self.flight_number, self.airline, self.departure_airport, self.departure_datetime,
-                  self.arrival_airport, self.duration)
+        query = "INSERT INTO flights ( airline_name,flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price) VALUES (%s, %s, %s, %s, %s, %s,%s, %s)"
+        values = (self.airline_name, self.flight_number, self.departure_airport,self.departure_date, self.departure_time,
+                  self.arrival_airport, self.duration, self.price)
+        print(query, values)
+        print("-------------------")
+        print(self.check_sql_string(query, values))
         self.cursor.execute(query, values)
         self.db.commit()
 

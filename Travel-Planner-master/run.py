@@ -8,9 +8,13 @@ import hashlib
 import locale
 import pymysql
 import time
-
+from src.customer import Customer
+from src.database import Database
+from datetime import datetime
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
+
+dbOb= Database()
 # locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8') # To get money formatting
 
 #####################################################################
@@ -95,6 +99,16 @@ def make_admin(username):
 
 	return redirect(url_for('home'))
 
+
+#####################################################################
+#                             Flights                               #
+#####################################################################
+
+
+@app.route('/flights', methods=['GET'])
+def add_flight():
+	return render_template('flights.html')
+
 @app.route('/flight/<int:flight_id>')
 def get_flight(flight_id):
     flight = Flight.get_flight_by_id(flight_id)
@@ -102,16 +116,24 @@ def get_flight(flight_id):
         return render_template('flight.html', flight=flight)
     return "Flight not found."
 
-@app.route('/flight/create', methods=['GET', 'POST'])
+@app.route('/flights-create', methods=['POST'])
 def create_flight():
-    if request.method == 'POST':
-        name = request.form['name']
-        origin = request.form['origin']
-        destination = request.form['destination']
-        flight = Flight(None, name, origin, destination)
-        flight.save()
-        return redirect('/')
-    return render_template('create_flight.html')
+    
+	if request.method == 'POST':
+		airline_name = request.form['airline_name']
+		flight_number = request.form['flight_number']
+		departure_airport = request.form['departure_airport']
+		departure_time = str(request.form['departure_time'])
+		departure_date = str(request.form['departure_date'])
+		arrival_airport = request.form['arrival_airport']
+		# arrival_time = request.form['arrival_time']
+		price = request.form['price']
+		duration = request.form['duration_flight']
+		print(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
+		fl_ob = Flight(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
+		fl_ob.save()
+		return redirect('/home')
+	return render_template('flights.html')
 
 @app.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
 def edit_flight(flight_id):
@@ -215,36 +237,14 @@ def register():
 	state=request.form['register_state']
 	country=request.form['register_country']
 	zipcode=request.form['register_zip']
+	customer_ob = Customer(name, password1,password2, email, firstname, lastname, street, city, state, country, zipcode)
 
-	# Check if all user fields filled in
-	if name == '' or password1 == '' or password2 == '' or firstname == '' or firstname == '' or lastname == '' or email == '' or street == '' or city == '' or state == '' or country == '' or zipcode == '':
-		error = 'Please fill out all the fields.'
+	error = customer_ob.validate_data()
+	if error != 0:
 		return render_template('login.html', error2=error, scroll="register")
-
-	# Check that passwords match
-	if password1 != password2:
-		error = 'Passwords do not match.'
-		return render_template('login.html', error2=error, scroll="register")
-
-	# Parse street_no from street
-	street_no = -1
-
-	# Check that address is valid format
-	if len(street.split(" ")) < 3 or not street.split(" ")[0].isdigit():
-		error = 'Street Address format not recognized. Please re-enter.'
-		return render_template('login.html', error2=error, scroll="register")
-
-	street_no = str(street.split(" ")[0])
-	street = street[street.index(" ") + 1:]
-
-	# Write to Database
-	cursor = db.cursor()
-	cursor.execute("insert into address (street_no, street_name, city, state, country, zip) values ("
-			+ street_no + ", '" + street + "', '" + city + "', '" + state + "', '" + country + "', '" + zipcode + "');")
-
-	cursor.execute("insert into user (username, password, email, is_admin, first_name, last_name, address_id, suspended) values ('"
-	+ name + "', '" + password1 + "', '" + email + "', false, '" + firstname + "', '" + lastname + "', (select max(address_id) from address), 0);")
-	db.commit()
+	insert_address_query,insert_username_query = customer_ob.create_query()
+	dbOb.insert(insert_address_query)
+	dbOb.insert(insert_username_query)
 
 	# Update current user session
 	session['username'] = name
@@ -369,6 +369,7 @@ def delete_attraction(attraction_index):
 	db.commit()
 	return redirect(url_for('home'))
 
+
 #####################################################################
 #                                TRIP                               #
 #####################################################################
@@ -385,14 +386,13 @@ def trip():
 	cursor = db.cursor()
 	query = get_all_activities_in_a_trip()
 	cursor.execute(query)
-	activities = [dict(date=row[0], name=row[1], price=locale.currency(row[2], grouping=True), start_time=row[3], end_time=row[4], id=row[5]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
+	activities = [dict(date=row[0], name=row[1], price=row[2], start_time=row[3], end_time=row[4], id=row[5]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
 
 	# Calculate total cost of trip
 	query = get_trip_cost()
 	cursor.execute(query)
 	amount = cursor.fetchall()[0][0]
-	total_cost = locale.currency(amount, grouping=True) if amount is not None else locale.currency(0, grouping=True)
-
+	total_cost = str(amount)
 	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
 
 @app.route('/complete')
@@ -420,7 +420,7 @@ def complete():
 
 		if num_cards == 0:
 			# No credit card on file
-			return render_template('payment.html', session=session, total_cost=locale.currency(total_cost, grouping=True))
+			return render_template('payment.html', session=session, total_cost=total_cost)
 		else:
 			# Already have a credit card; they're fine.
 			return redirect(url_for('trip_booked'))
@@ -544,12 +544,6 @@ def remove_from_trip(activity_id):
 
 # Run the application
 if __name__ == '__main__':
-
+	db = Database().get_db()
 	# Note: If your database uses a different password, enter it here.
-	db_pass = 'rootpass'
-
-	# Make sure your database is started before running run.py
-	db_name = 'team1'
-	db = pymysql.connect(host='localhost', user='root', passwd=db_pass, db=db_name)
-	app.run(debug=True, host='0.0.0.0', port=5000)
-	db.close()
+	app.run(debug=True, host='0.0.0.0', port=8000)
