@@ -1,5 +1,5 @@
 # Use a base Python image
-FROM ubuntu:latest
+FROM python:3.9-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -14,16 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose the port on which the Flask app will run
-EXPOSE 5000
+EXPOSE 8000
 
 # Set the environment variable
-ENV FLASK_APP=app.py
 
-# Start MySQL service
-#CMD ["service mysql start"]
-#CMD ["mysql -u root -p < team1-schema.sql"]
-#CMD ["mysql -u root -p < team1-data.sql"]
 # Run the Flask application
-#ENTRYPOINT [ "python" ]
-
-#CMD ["run.py" ]
+CMD python run.py
