@@ -11,6 +11,7 @@ import time
 from src.customer import Customer
 from src.database import Database
 from datetime import datetime
+from src.hotel import Hotel
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
 
@@ -155,6 +156,37 @@ def delete_flight(flight_id):
         flight.delete()
         return redirect('/')
     return "Flight not found."
+
+
+
+#####################################################################
+#                             Hotels                                #
+#####################################################################
+
+
+@app.route('/hotels', methods=['GET'])
+def add_hotels():
+	return render_template('hotels.html')
+
+
+
+@app.route('/hotels-create', methods=['POST'])
+def create_hotel():
+    
+	if request.method == 'POST':
+		hotel_number = request.form['hotel_number']
+		hotel_name = request.form['hotel_name']
+		hote_address = request.form['hotel_address']
+		city = str(request.form['city'])
+		country = str(request.form['country'])
+		hotel_rating = request.form['hotel_rating']
+		price = request.form['price']
+		print(hotel_name, hotel_number, hote_address,city, country, hotel_rating, price)
+		hl_ob = Hotel(hotel_number, hotel_name, hote_address,city, country, hotel_rating, price)
+		hl_ob.save()
+		return redirect('/home')
+	return render_template('hotels.html')
+
 
 
 #####################################################################

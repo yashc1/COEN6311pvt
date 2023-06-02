@@ -189,3 +189,16 @@ CREATE TABLE IF NOT EXISTS flights (
 	price DOUBLE PRECISION NOT NULL
 );
 
+-- create sql schema for hotels
+DROP TABLE IF EXISTS hotels;
+CREATE TABLE IF NOT EXISTS hotels (
+
+	hotel_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	hotel_number VARCHAR(50) NOT NULL,
+	hotel_name VARCHAR(50) NOT NULL,
+	hotel_address VARCHAR(50) NOT NULL,
+	city VARCHAR(50) NOT NULL,
+	country VARCHAR(50) NOT NULL,
+	hotel_rating INTEGER NOT NULL,
+	price DOUBLE PRECISION NOT NULL
+);

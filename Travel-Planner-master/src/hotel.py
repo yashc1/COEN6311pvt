@@ -1,14 +1,15 @@
+from src.database import Database
 class Hotel:
-    def __init__(self, hotel_number, name, address, city, country, star_rating, amenities, db, cursor):
+    def __init__(self, hotel_number, name, address, city, country, star_rating,price):
         self.hotel_number = hotel_number
         self.name = name
         self.address = address
         self.city = city
         self.country = country
         self.star_rating = star_rating
-        self.amenities = amenities
-        self.db = db
-        self.cursor = cursor
+        self.price = price
+        self.db = Database().get_db()
+        self.cursor = self.db.cursor()
 
     @staticmethod
     def get_all_hotels(cursor):
@@ -30,10 +31,10 @@ class Hotel:
         return None
 
     def save(self):
-        query = "INSERT INTO hotels (hotel_number, name, address, city, country, star_rating, amenities) " \
+        query = "INSERT INTO hotels (hotel_number, hotel_name, hotel_address, city, country, hotel_rating, price) " \
                 "VALUES (%s, %s, %s, %s, %s, %s, %s)"
         values = (self.hotel_number, self.name, self.address, self.city, self.country, self.star_rating,
-                  self.amenities)
+                  self.price)
         self.cursor.execute(query, values)
         self.db.commit()
 

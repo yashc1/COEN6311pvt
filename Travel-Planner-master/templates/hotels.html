@@ -5,52 +5,40 @@
 
 <div class="row">
 	<div class="col s12">
-		<h2>Flight Booking</h2>
+		<h2>Hotel Booking</h2>
 		<!-- <h5>Total Cost of Trip: <span style="color: green">{{ total_cost }}</span></h5>
 		<br /><br /><br /> -->
 
-        <form class="col s12" method="post" action="/flights-create">
+        <form class="col s12" method="post" action="/hotels-create">
             <div class="row">
                 <h5>Flight Information</h5>
                 <div class="row">
                     <div class="input-field col s4">
-                    	<p>Airline Name</p>
-                        <input placeholder="Emirates" name="airline_name" type="text">
+                    	<p>Hotel Name</p>
+                        <input placeholder="The Four" name="hotel_name" type="text">
                     </div>
                     <div class="input-field col s4">
-                    	<p>Flight Number</p>
-                        <input placeholder="EM123" name="flight_number" type="text">
+                    	<p>Hotel Number</p>
+                        <input placeholder="XXXXXXXXXX" name="hotel_number" type="text">
                     </div>
                     <div class="input-field col s4">
-                    	<p>First Name</p>
-                        <input placeholder="John" name="first_name" type="text">
+                    	<p>Hotel Address</p>
+                        <input placeholder="Address" name="hotel_address" type="text">
                     </div>
                     <div class="input-field col s4">
-                    	<p>Last Name</p>
-                        <input placeholder="Smith" name="last_name" type="text">
+                    	<p>Hotel City</p>
+                        <input placeholder="Montreal" name="city" type="text">
                     </div>
                     <div class="input-field col s4">
-                    	<p>Departure Airport</p>
-                        <input placeholder="YUL" name="departure_airport" type="text">
+                    	<p>Country</p>
+                        <input placeholder="Canada" name="country" type="text">
                     </div>
                     <div class="input-field col s4">
-                    	<p>Departure Time</p>
-                        <input placeholder="HH:MM" name="departure_time" type="time">
-                    </div>
-                    <p>Departure Date</p>
-
-                        <input name="departure_date" type="date" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Arrival Airport</p>
-                        <input placeholder="NYC" name="arrival_airport" type="text">
+                    	<p>Rating</p>
+                        <input placeholder="3" name="hotel_rating" type="number" min="1" max="5">
                     </div>
                 </div>
                 <div class="row">
-                    <div class="input-field col s6">
-                    	<p>Duration</p>
-                        <input placeholder="90" name="duration_flight" type="number">
-                    </div>
                     <div class="input-field col s6">
                     	<p>Price</p>
                         <input placeholder="100" name="price" type="number">
