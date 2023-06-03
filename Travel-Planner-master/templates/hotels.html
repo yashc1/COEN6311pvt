@@ -5,52 +5,45 @@
 
 <div class="row">
 	<div class="col s12">
-		<h2>Hotel Booking</h2>
-		<!-- <h5>Total Cost of Trip: <span style="color: green">{{ total_cost }}</span></h5>
-		<br /><br /><br /> -->
-
-        <form class="col s12" method="post" action="/hotels-create">
-            <div class="row">
-                <h5>Flight Information</h5>
-                <div class="row">
-                    <div class="input-field col s4">
-                    	<p>Hotel Name</p>
-                        <input placeholder="The Four" name="hotel_name" type="text">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Hotel Number</p>
-                        <input placeholder="XXXXXXXXXX" name="hotel_number" type="text">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Hotel Address</p>
-                        <input placeholder="Address" name="hotel_address" type="text">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Hotel City</p>
-                        <input placeholder="Montreal" name="city" type="text">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Country</p>
-                        <input placeholder="Canada" name="country" type="text">
-                    </div>
-                    <div class="input-field col s4">
-                    	<p>Rating</p>
-                        <input placeholder="3" name="hotel_rating" type="number" min="1" max="5">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="input-field col s6">
-                    	<p>Price</p>
-                        <input placeholder="100" name="price" type="number">
-                </div>
-                <div class="row">
-                    <div class="col s12 m12 l12 center-align">
-                        <button class="btn waves-effect waves-light" type="submit" name="action">Submit<i class="material-icons right">send</i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
+		<h2>View Hotels</h2>
+		<p class="text-align">
+			Choose your Hotels
+		</p>
+		{% if success %}
+			<h5 style="color:green">{{ success }}</h5>
+		{% endif %}
+		<h4 class="center-align">Hotels</h4>
+		<table class="responsive-table centered">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Hotel Number</th>
+					<th>Address</th>
+					<th>City</th>
+					<th>Country</th>
+					<th>Hotel Rating</th>
+					<th>Price</th>
+					<th>Add to My Trip</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for item in items %}
+				<tr>
+					<td>{{ item.hotel_name }}</td>
+					<td>{{ item.hotel_number }}</td>
+					<td>{{ item.address }}</td>
+					<td>{{ item.city }}</td>
+					<td>{{ item.country }}</td>
+					<td>{{ item.hotel_rating }}</td>
+					<td>{{ item.price }}</td>
+					<form action="/add-to-hotels/{{ loop.index }}" method="POST">
+					<td><button class="btn waves-effect waves-light" type="submit" name="action">Add to Trip<i class="material-icons right">send</i></td>
+					<input type="hidden" name="is_reserved" value="{% if item.timeslots %}1{% else %}0{% endif %}">
+					</form>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	</div>
 </div>
 {% endblock %}

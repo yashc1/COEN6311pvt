@@ -202,3 +202,15 @@ CREATE TABLE IF NOT EXISTS hotels (
 	hotel_rating INTEGER NOT NULL,
 	price DOUBLE PRECISION NOT NULL
 );
+
+
+DROP TABLE IF EXISTS activities;
+CREATE TABLE IF NOT EXISTS activities (
+	activity_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	activity_name VARCHAR(50) NOT NULL,
+	description VARCHAR(250) NOT NULL,
+	address VARCHAR(50) NOT NULL,
+	price DOUBLE PRECISION NOT NULL
+);
+
+-- write insert value command for hotels

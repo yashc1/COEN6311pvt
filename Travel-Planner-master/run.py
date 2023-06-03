@@ -1,9 +1,6 @@
 from src.flight import Flight
 from flask import Flask, flash, render_template, request, redirect, session, url_for
 from flask_wtf import Form
-from wtforms import StringField
-from wtforms.widgets import TextArea
-from wtforms.validators import DataRequired
 import hashlib
 import locale
 import pymysql
@@ -16,7 +13,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
 
 dbOb= Database()
-# locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8') # To get money formatting
 
 #####################################################################
 #                          SQL Queries                              #
@@ -36,12 +32,7 @@ def get_current_trip_id():
 def add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost):
 	return "insert into activity (activity_name, activity_start_time, activity_end_time, activity_date, attraction_name, username, trip_id, cost) values ('" + activity_name + "', '" + start_time + "', '" + end_time + "', '" + date + "', '" + attraction_name + "', '" + session['username'] + "', " + str(session['current_trip_id']) + ", " + str(cost) + ");"
 
-#####################################################################
-#                          WTF FORMS                                #
-#####################################################################
-class ReviewForm(Form):
-    title = StringField('review_title', validators=[DataRequired()])
-    body = StringField('review_body', widget=TextArea(), validators=[DataRequired()])
+
 
 #####################################################################
 #                         INDEX/HOME                                #
@@ -106,15 +97,50 @@ def make_admin(username):
 #####################################################################
 
 
-@app.route('/flights', methods=['GET'])
+def get_flight_data():
+
+	cursor = db.cursor()
+	cursor.execute("select * from flights;")
+	flights = [dict(flight_number=row[1], airline_name=row[2], departure_date=row[3],departure_time=row[4],departure_airport=row[5],arrival_airport=row[6],duration=row[7],price=row[8]) for row in cursor.fetchall()]
+	return flights
+
+# Shows all available attractions.
+@app.route('/flights')
+def view_flights():
+
+	flights = get_flight_data()
+	return render_template('flights.html', items=flights, session=session)
+
+# Receive attraction data to turn into an activity
+@app.route('/add-to-flight/<attraction_index>', methods=['POST'])
+def add_to_flight(attraction_index):
+
+	# TODO: Check if the attraction_name is on list of attractions
+	print(session['current_trip_id'])
+	if 'current_trip_id' not in session or not session['current_trip_id']:
+		return create_trip(no_error=False)
+
+	cursor = db.cursor()
+
+	# Get attraction data
+	cursor.execute("select * from activities;")
+	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
+	attraction_name = attractions[int(attraction_index) - 1]['name']
+	db.commit()
+
+	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
+
+# Insert activity into database
+
+@app.route('/flights-admin', methods=['GET'])
 def add_flight():
-	return render_template('flights.html')
+	return render_template('flights-admin.html')
 
 @app.route('/flight/<int:flight_id>')
 def get_flight(flight_id):
     flight = Flight.get_flight_by_id(flight_id)
     if flight:
-        return render_template('flight.html', flight=flight)
+        return render_template('flights-admin.html', flight=flight)
     return "Flight not found."
 
 @app.route('/flights-create', methods=['POST'])
@@ -127,14 +153,13 @@ def create_flight():
 		departure_time = str(request.form['departure_time'])
 		departure_date = str(request.form['departure_date'])
 		arrival_airport = request.form['arrival_airport']
-		# arrival_time = request.form['arrival_time']
 		price = request.form['price']
 		duration = request.form['duration_flight']
 		print(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
 		fl_ob = Flight(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
 		fl_ob.save()
 		return redirect('/home')
-	return render_template('flights.html')
+	return render_template('flights-admin.html')
 
 @app.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
 def edit_flight(flight_id):
@@ -164,7 +189,40 @@ def delete_flight(flight_id):
 #####################################################################
 
 
-@app.route('/hotels', methods=['GET'])
+
+def get_hotel_data():
+
+	cursor = db.cursor()
+	cursor.execute("select * from hotels;")
+	hotels = [dict(hotel_number=row[1], hotel_name=row[2], address=row[3],city=row[4],country=row[5],hotel_rating=row[6],price=row[7]) for row in cursor.fetchall()]
+	return hotels
+
+# Shows all available attractions.
+@app.route('/hotels')
+def view_hotels():
+
+	hotels = get_hotel_data()
+	return render_template('hotels.html', items=hotels, session=session)
+
+# Receive attraction data to turn into an activity
+@app.route('/add-to-hotels/<attraction_index>', methods=['POST'])
+def add_to_hotels(attraction_index):
+
+	# TODO: Check if the attraction_name is on list of attractions
+	print(session['current_trip_id'])
+	if 'current_trip_id' not in session or not session['current_trip_id']:
+		return create_trip(no_error=False)
+
+	cursor = db.cursor()
+
+	# Get attraction data
+	cursor.execute("select * from activities;")
+	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
+	attraction_name = attractions[int(attraction_index) - 1]['name']
+	db.commit()
+
+	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
+@app.route('/hotels-admin', methods=['GET'])
 def add_hotels():
 	return render_template('hotels.html')
 
@@ -185,7 +243,7 @@ def create_hotel():
 		hl_ob = Hotel(hotel_number, hotel_name, hote_address,city, country, hotel_rating, price)
 		hl_ob.save()
 		return redirect('/home')
-	return render_template('hotels.html')
+	return render_template('hotels-admin.html')
 
 #####################################################################
 #                             User                                  #
@@ -337,43 +395,15 @@ def register():
 	return redirect(url_for('home'))
 
 
+#####################################################################
+#                        Activities                                 #
+#####################################################################
 
 def get_attractions_data():
 
 	cursor = db.cursor()
-	cursor.execute("select * from attraction natural join address;")
-	attractions = [dict(name=row[1], description=row[2], nearest_transport=row[3], 
-		address=(str(row[4]) if row[4] is not None else "") + " " + (row[5] if row[5] is not None else "") + " " + (row[6] if row[6] is not None else "") + ", " + (row[7] if row[7] is not None else "") + " " + (row[8] if row[8] is not None else "") + " " + (row[9] if row[9] is not None else "")) for row in cursor.fetchall()]
-
-	for i in range(0, len(attractions)):
-
-		attraction = attractions[i]
-		attraction_name = attraction['name']
-
-		# Add hours into attractions list
-		cursor.execute("select day, hour_start_time, hour_end_time from hour natural join attraction where attraction.attraction_name='" + attraction_name + "';")
-		hours = [dict(day=row[0], hour_start_time=row[1], hour_end_time=row[2]) for row in cursor.fetchall()]
-		attractions[i]['hours'] = hours
-
-		# Add time slots into attractions list
-
-		# 1) Get remaining spots for a time slot.
-		cursor.execute("select timeslot_num_people - sum(reserves_num_people) from timeslot natural join reserves where timeslot.attraction_name = '" + attraction_name + "' group by timeslot_id;")
-		num_remaining = cursor.fetchall()
-
-		if len(num_remaining) > 0:
-
-			# 2) Get timeslot information.
-			cursor.execute("select timeslot_id, timeslot_start_time, timeslot_end_time, timeslot_num_people from timeslot natural join attraction where attraction.attraction_name='" + attraction_name + "';")
-			timeslots = []
-			rows = cursor.fetchall()
-			for j in range(0, len(num_remaining)):
-				row = rows[j]
-				timeslot = dict(id=row[0], start_time=row[1], end_time=row[2], num_remaining=num_remaining[j][0])
-				timeslots.append(timeslot)
-
-			# 3) Add timeslot information to attractions
-			attractions[i]['timeslots'] = timeslots
+	cursor.execute("select * from activities;")
+	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
 	return attractions
 
 # Shows all available attractions.
@@ -394,20 +424,10 @@ def add_to_trip(attraction_index):
 
 	cursor = db.cursor()
 
-	# Check if it was a reserved attraction.
-	if 'is_reserved' in request.form and request.form['is_reserved']:
-
-		# Reserved
-		timeslot_id = request.form['timeslot_id']
-		num_people = request.form['num_people']
-
-		# Update database
-		cursor.execute("insert into reserves (reserves_num_people, timeslot_id, username) values (" + str(num_people) + ", " + str(timeslot_id) + ", '" + session['username'] + "');")
-
-	# Get attraction name from index.
-	cursor.execute("select * from attraction;")
-	attractions = [dict(attraction_name=row[0], description=row[1], nearest_transport=row[2]) for row in cursor.fetchall()]
-	attraction_name = attractions[int(attraction_index) - 1]['attraction_name']
+	# Get attraction data
+	cursor.execute("select * from activities;")
+	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
+	attraction_name = attractions[int(attraction_index) - 1]['name']
 	db.commit()
 
 	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
