@@ -1,12 +1,8 @@
-
-
 from flask import Flask, flash, render_template, request, redirect, session, url_for, Blueprint
-
 from src.database import Database
 from app.activities_app import get_attractions_data
 
 trip_blueprint = Blueprint('trip_blueprint', __name__)
-
 
 #####################################################################
 #                          SQL Queries                              #
@@ -25,7 +21,6 @@ def get_current_trip_id():
 
 def add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost):
 	return "insert into activity (activity_name, activity_start_time, activity_end_time, activity_date, attraction_name, username, trip_id, cost) values ('" + activity_name + "', '" + start_time + "', '" + end_time + "', '" + date + "', '" + attraction_name + "', '" + session['username'] + "', " + str(session['current_trip_id']) + ", " + str(cost) + ");"
-
 
 
 db = Database().db
