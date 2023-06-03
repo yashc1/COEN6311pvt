@@ -32,7 +32,8 @@ def add_to_hotels(attraction_index):
 	# TODO: Check if the attraction_name is on list of attractions
 	print(session['current_trip_id'])
 	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
+		# return create_trip(no_error=False)
+		print("hello")
 
 	cursor = db.cursor()
 

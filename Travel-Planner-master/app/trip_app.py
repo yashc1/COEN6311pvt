@@ -83,9 +83,9 @@ def complete():
 			return render_template('payment.html', session=session, total_cost=total_cost)
 		else:
 			# Already have a credit card; they're fine.
-			return redirect(url_for('trip_booked'))
+			return redirect(url_for('trip_blueprint.trip_booked'))
 	else:
-		return redirect(url_for('trip_booked'))
+		return redirect(url_for('trip_blueprint.trip_booked'))
 
 @trip_blueprint.route('/pay', methods=['POST'])
 def pay():
@@ -108,7 +108,7 @@ def pay():
 	# Insert credit card information
 	query = "insert into creditcard (card_number, username, first_name, last_name, exp_month, exp_year, address_id) values ('" + card_number + "', '" + session['username'] + "', '" + first_name + "', '" + last_name + "', " + str(exp_month) + ", " + str(exp_year) + ", " + str(address_id) + ");"
 
-	return redirect(url_for('trip_booked'))
+	return redirect(url_for('trip_blueprint.trip_booked'))
 
 # Render home page once a trip has been successfully booked.
 # TODO: Return a Trip ID so that a user can view their previous trips
@@ -185,7 +185,7 @@ def new_trip():
 	query = get_current_trip_id()
 	cursor.execute(query)
 	session['current_trip_id'] = cursor.fetchall()[0][0]
-	return redirect(url_for('trip'))
+	return redirect(url_for('trip_blueprint.trip'))
 
 # Remove an activity from a trip
 @trip_blueprint.route('/remove-from-trip/<activity_id>')
@@ -196,4 +196,4 @@ def remove_from_trip(activity_id):
 	cursor.execute("delete from activity where activity_id=" + activity_id + ";")
 	db.commit()
 
-	return redirect(url_for('trip'))
+	return redirect(url_for('trip_blueprint.trip'))
