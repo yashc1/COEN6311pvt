@@ -17,3 +17,10 @@ class Database:
         cursor.execute(query)
         self.db.commit()
         cursor.close()
+        
+    def execute_with_values(self, query, values):
+        cursor = self.db.cursor()
+        cursor.execute(query, values)
+        self.db.commit()
+        cursor.close()
+    

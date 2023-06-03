@@ -28,6 +28,7 @@
 					<th>Delete User</th>
 					<th>Suspend User</th>
 					<th>Make Admin</th>
+					<th>Edit User</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -42,7 +43,8 @@
 					<td>{{ item.suspended }}</td>
 					<td><a class="waves-effect waves-light btn" href="/delete-user/{{ item.username }}">Delete</a></td>
 					<td><a class="waves-effect waves-light btn" href="/suspend-user/{{ item.username }}">{% if item.suspended=='Yes' %}Unsuspend{% else %}Suspend{% endif %}</a></td>
-					<td><a class="waves-effect waves-light btn" href="/make-admin/{{ item.username }}">Make-Admin</a></td>
+					<td><a class="waves-effect waves-light btn" href="/make-admin/{{ item.username }}">Make Admin</a></td>
+					<td><a class="waves-effect waves-light btn" href="/edit-user/{{ item.username }}">Edit User</a></td>
 				</tr>
 				{% endfor %}
 			</tbody>

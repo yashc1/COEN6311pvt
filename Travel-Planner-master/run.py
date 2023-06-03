@@ -187,6 +187,56 @@ def create_hotel():
 		return redirect('/home')
 	return render_template('hotels.html')
 
+#####################################################################
+#                             User                                  #
+#####################################################################
+
+@app.route('/edit-user/<username>')
+def edit_user(username):
+    cursor = db.cursor()
+    query = """SELECT u.username, u.email, u.is_admin, u.first_name, u.last_name, u.suspended,
+            a.street_no, a.street_name, a.city, a.state, a.country, a.zip
+            FROM user u
+            JOIN address a ON u.address_id = a.address_id
+            WHERE u.username = '{}'""".format(username)
+    cursor.execute(query)
+    data = cursor.fetchone()
+    return render_template('edit-user.html', param=username, data=data)
+
+@app.route('/update-user', methods=['POST'])
+async def update_user():
+	# Parse user input fields
+	name=request.form['register_username']
+	firstname=request.form['register_firstname']
+	lastname=request.form['register_lastname']
+	email=request.form['register_email']
+	street=request.form['register_streetaddress']
+	city=request.form['register_city']
+	state=request.form['register_state']
+	country=request.form['register_country']
+	zipcode=request.form['register_zip']
+	customer_ob = Customer(name, "","", email, firstname, lastname, street, city, state, country, zipcode)
+
+	# Get Address ID
+	cursor = db.cursor()
+	cursor.execute("select address_id from user where username='" + name + "';")
+	address_id = cursor.fetchall()[0][0]
+ 
+	print(address_id)
+	cursor.execute("select * from address where address_id='" + str(address_id) + "';")
+	data=cursor.fetchall()
+	print(data)
+	error = customer_ob.validate_data_for_update()
+	if error != 0:
+		return render_template('edit-user.html',param=name,
+                         data=(name, email, False, firstname, lastname, False, "", "", city, state, country, zipcode)
+                         , error2=error)
+	address_query, address_values, user_query, user_values = customer_ob.update(address_id)
+	dbOb.execute_with_values(address_query, address_values)
+	dbOb.execute_with_values(user_query, user_values)
+	cursor.execute("select * from address where address_id='" + str(address_id) + "';")
+	data=cursor.fetchall()
+	return redirect(url_for('home'))
 
 
 #####################################################################
