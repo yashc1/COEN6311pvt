@@ -127,3 +127,26 @@ INSERT INTO review (title, authored_date, body, username, attraction_name) VALUE
 INSERT INTO review (title, authored_date, body, username, attraction_name) VALUES ('Awesome Views', '2011-05-22', "Loved the Mona Lisa in the Louvre.", 'vooha20', 'Le Louvre');
 INSERT INTO review (title, authored_date, body, username, attraction_name) VALUES ('Great Views', '2013-03-22', "Loved the Pompidou Center.", 'soham32', 'Pompidou Center');
 INSERT INTO review (title, authored_date, body, username, attraction_name) VALUES ('Wow Views', '2014-02-22', "So great to look at.", 'siddhi16', 'Eiffel Tower');
+
+
+# ------------------- NEW -------------------
+
+
+INSERT INTO activities (activity_name,description,address,price) VALUES ('Eiffel Tower', "The Eiffel Tower is 300m tall wraught iron lattice Tower. It is located on the Champ de Mars in Paris, France", "Champ deMArs - Tour Eiffel (Light Rail Station)",120);
+INSERT INTO activities (activity_name,description,address,price) VALUES ('Le Louvre', "Paris's biggest museum with many famous paintings such as the Mona Lisa", "Palais Royal - Musee du Louvre (Subway Station)",130);
+INSERT INTO activities (activity_name,description,address,price) VALUES ('Sacre-Coeur Basilica', "The Basilica of the Sacred Heart of Paris, commonly known as Sacré-Cœur Basilica and often simply Sacré-Cœur, is a Roman Catholic church and minor basilica, dedicated to the Sacred Heart of Jesus", "Anvers (Subway Station)",55);
+INSERT INTO activities (activity_name,description,address,price) VALUES ('Metz Cathedral', "Saint-Étienne de Metz, also known as Metz Cathedral, is a historic Roman Catholic cathedral in Metz, capital of Lorraine, France.","France",65);
+INSERT INTO activities (activity_name,description,address,price) VALUES ('Fort de Queuleu', "The Fort de Queuleu is a fortification to the southeast of Metz, near Queuleu, France.","Queuleu",80);
+
+
+INSERT INTO hotels (hotel_number, hotel_name, hotel_address, city, country, hotel_rating, price) VALUES
+('8888999322', 'The Four', 'Champ deMArs', 'Paris', 'Canada', 4, 80),
+('8888999322', 'Grandy', '1234 Hotel Street', 'Montreal', 'Canada', 5, 90),
+('8888999323', 'North Star', '1234 Hotel Street', 'Montreal', 'Canada', 3, 100),
+('8888999322', 'Lincoln', '1234 Hotel Street', 'Montreal', 'Canada', 2, 120),
+('8888999322', 'Morale', '1234 Hotel Street', 'Montreal', 'Canada', 3, 130),
+('8888999322', 'Pint', '1234 Hotel Street', 'Montreal', 'Canada', 4, 400),
+('8888999322', 'La Rose', '1234 Hotel Street', 'Montreal', 'Canada', 5, 800),
+('8888999322', 'Romania', '1234 Hotel Street', 'Montreal', 'Canada', 5, 200),
+('8888999322', 'Lilbu', '1234 Hotel Street', 'Montreal', 'Canada', 4, 100);		
+
