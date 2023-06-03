@@ -9,14 +9,38 @@ from src.customer import Customer
 from src.database import Database
 from datetime import datetime
 from src.hotel import Hotel
+
+
+import app.flights_app as flights_app
+import app.hotels_app  as hotels_app
+import app.activities_app  as activities_app
+import app.trip_app as trip_app
+import app.login_app as login_app
+
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
-
+app.register_blueprint(flights_app.flight_blueprint, url_prefix='/')
+app.register_blueprint(hotels_app.hotels_blueprint, url_prefix='/')
+app.register_blueprint(activities_app.activities_blueprint, url_prefix='/')
+app.register_blueprint(trip_app.trip_blueprint, url_prefix='/')
+app.register_blueprint(login_app.login_blueprint, url_prefix='/')
 dbOb= Database()
+
+
 
 #####################################################################
 #                          SQL Queries                              #
 #####################################################################
+
+def get_attractions_data():
+
+	cursor = db.cursor()
+	cursor.execute("select * from activities;")
+	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
+	return attractions
+
 def view_completed_attractions_query():
 	 return "select activity_date, attraction.attraction_name, description from activity natural join attraction where activity.username = '" + session['username'] + "' and ((activity_date = CURDATE() and activity_end_time <= CURTIME()) or activity_date < CURDATE());"
 
@@ -31,6 +55,33 @@ def get_current_trip_id():
 
 def add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost):
 	return "insert into activity (activity_name, activity_start_time, activity_end_time, activity_date, attraction_name, username, trip_id, cost) values ('" + activity_name + "', '" + start_time + "', '" + end_time + "', '" + date + "', '" + attraction_name + "', '" + session['username'] + "', " + str(session['current_trip_id']) + ", " + str(cost) + ");"
+
+
+def create_trip(no_error):
+
+	# Query database when user is admin for admin panel
+	if session['is_admin']:
+
+		# Get user table information.
+		cursor = db.cursor()
+		cursor.execute("select * from user;")
+		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
+
+		# Get attraction table information.
+		attractions = get_attractions_data()
+
+		if no_error:
+			return render_template("home.html", session=session, users=users, attractions=attractions, no_trip="Here, you can start making your first trip!")
+		else:
+			return render_template("home.html", session=session, users=users, attractions=attractions, no_trip_error="You must first create a new trip!")
+
+	# Not an admin
+	if no_error:
+		if 'current_trip_id' not in session or not session['current_trip_id']:
+			return render_template("home.html", session=session, no_trip="Here, you can start making a new trip!")
+		return render_template("home.html", session=session)
+	else:
+		return render_template("home.html", session=session, no_trip_error="You must first create a new trip!")
 
 
 
@@ -91,554 +142,6 @@ def make_admin(username):
 
 	return redirect(url_for('home'))
 
-
-#####################################################################
-#                             Flights                               #
-#####################################################################
-
-
-def get_flight_data():
-
-	cursor = db.cursor()
-	cursor.execute("select * from flights;")
-	flights = [dict(flight_number=row[1], airline_name=row[2], departure_date=row[3],departure_time=row[4],departure_airport=row[5],arrival_airport=row[6],duration=row[7],price=row[8]) for row in cursor.fetchall()]
-	return flights
-
-# Shows all available attractions.
-@app.route('/flights')
-def view_flights():
-
-	flights = get_flight_data()
-	return render_template('flights.html', items=flights, session=session)
-
-# Receive attraction data to turn into an activity
-@app.route('/add-to-flight/<attraction_index>', methods=['POST'])
-def add_to_flight(attraction_index):
-
-	# TODO: Check if the attraction_name is on list of attractions
-	print(session['current_trip_id'])
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	cursor = db.cursor()
-
-	# Get attraction data
-	cursor.execute("select * from activities;")
-	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
-	attraction_name = attractions[int(attraction_index) - 1]['name']
-	db.commit()
-
-	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
-
-# Insert activity into database
-
-@app.route('/flights-admin', methods=['GET'])
-def add_flight():
-	return render_template('flights-admin.html')
-
-@app.route('/flight/<int:flight_id>')
-def get_flight(flight_id):
-    flight = Flight.get_flight_by_id(flight_id)
-    if flight:
-        return render_template('flights-admin.html', flight=flight)
-    return "Flight not found."
-
-@app.route('/flights-create', methods=['POST'])
-def create_flight():
-    
-	if request.method == 'POST':
-		airline_name = request.form['airline_name']
-		flight_number = request.form['flight_number']
-		departure_airport = request.form['departure_airport']
-		departure_time = str(request.form['departure_time'])
-		departure_date = str(request.form['departure_date'])
-		arrival_airport = request.form['arrival_airport']
-		price = request.form['price']
-		duration = request.form['duration_flight']
-		print(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
-		fl_ob = Flight(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
-		fl_ob.save()
-		return redirect('/home')
-	return render_template('flights-admin.html')
-
-@app.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
-def edit_flight(flight_id):
-    flight = Flight.get_flight_by_id(flight_id)
-    if flight:
-        if request.method == 'POST':
-            flight.name = request.form['name']
-            flight.origin = request.form['origin']
-            flight.destination = request.form['destination']
-            flight.update()
-            return redirect('/')
-        return render_template('edit_flight.html', flight=flight)
-    return "Flight not found."
-
-@app.route('/flight/delete/<int:flight_id>')
-def delete_flight(flight_id):
-    flight = Flight.get_flight_by_id(flight_id)
-    if flight:
-        flight.delete()
-        return redirect('/')
-    return "Flight not found."
-
-
-
-#####################################################################
-#                             Hotels                                #
-#####################################################################
-
-
-
-def get_hotel_data():
-
-	cursor = db.cursor()
-	cursor.execute("select * from hotels;")
-	hotels = [dict(hotel_number=row[1], hotel_name=row[2], address=row[3],city=row[4],country=row[5],hotel_rating=row[6],price=row[7]) for row in cursor.fetchall()]
-	return hotels
-
-# Shows all available attractions.
-@app.route('/hotels')
-def view_hotels():
-
-	hotels = get_hotel_data()
-	return render_template('hotels.html', items=hotels, session=session)
-
-# Receive attraction data to turn into an activity
-@app.route('/add-to-hotels/<attraction_index>', methods=['POST'])
-def add_to_hotels(attraction_index):
-
-	# TODO: Check if the attraction_name is on list of attractions
-	print(session['current_trip_id'])
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	cursor = db.cursor()
-
-	# Get attraction data
-	cursor.execute("select * from activities;")
-	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
-	attraction_name = attractions[int(attraction_index) - 1]['name']
-	db.commit()
-
-	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
-@app.route('/hotels-admin', methods=['GET'])
-def add_hotels():
-	return render_template('hotels.html')
-
-
-
-@app.route('/hotels-create', methods=['POST'])
-def create_hotel():
-    
-	if request.method == 'POST':
-		hotel_number = request.form['hotel_number']
-		hotel_name = request.form['hotel_name']
-		hote_address = request.form['hotel_address']
-		city = str(request.form['city'])
-		country = str(request.form['country'])
-		hotel_rating = request.form['hotel_rating']
-		price = request.form['price']
-		print(hotel_name, hotel_number, hote_address,city, country, hotel_rating, price)
-		hl_ob = Hotel(hotel_number, hotel_name, hote_address,city, country, hotel_rating, price)
-		hl_ob.save()
-		return redirect('/home')
-	return render_template('hotels-admin.html')
-
-#####################################################################
-#                             User                                  #
-#####################################################################
-
-@app.route('/edit-user/<username>')
-def edit_user(username):
-    cursor = db.cursor()
-    query = """SELECT u.username, u.email, u.is_admin, u.first_name, u.last_name, u.suspended,
-            a.street_no, a.street_name, a.city, a.state, a.country, a.zip
-            FROM user u
-            JOIN address a ON u.address_id = a.address_id
-            WHERE u.username = '{}'""".format(username)
-    cursor.execute(query)
-    data = cursor.fetchone()
-    return render_template('edit-user.html', param=username, data=data)
-
-@app.route('/update-user', methods=['POST'])
-async def update_user():
-	# Parse user input fields
-	name=request.form['register_username']
-	firstname=request.form['register_firstname']
-	lastname=request.form['register_lastname']
-	email=request.form['register_email']
-	street=request.form['register_streetaddress']
-	city=request.form['register_city']
-	state=request.form['register_state']
-	country=request.form['register_country']
-	zipcode=request.form['register_zip']
-	customer_ob = Customer(name, "","", email, firstname, lastname, street, city, state, country, zipcode)
-
-	# Get Address ID
-	cursor = db.cursor()
-	cursor.execute("select address_id from user where username='" + name + "';")
-	address_id = cursor.fetchall()[0][0]
- 
-	print(address_id)
-	cursor.execute("select * from address where address_id='" + str(address_id) + "';")
-	data=cursor.fetchall()
-	print(data)
-	error = customer_ob.validate_data_for_update()
-	if error != 0:
-		return render_template('edit-user.html',param=name,
-                         data=(name, email, False, firstname, lastname, False, "", "", city, state, country, zipcode)
-                         , error2=error)
-	address_query, address_values, user_query, user_values = customer_ob.update(address_id)
-	dbOb.execute_with_values(address_query, address_values)
-	dbOb.execute_with_values(user_query, user_values)
-	cursor.execute("select * from address where address_id='" + str(address_id) + "';")
-	data=cursor.fetchall()
-	return redirect(url_for('home'))
-
-
-#####################################################################
-#                        LOGIN / REGISTRATION                       #
-#####################################################################
-
-# Login/Registration Page. Redirects to home if already logged in.
-@app.route('/login-page')
-def login_page():
-
-	# Show login page if not logged in. Redirect to home if already logged in.
-	if 'username' not in session or session['username'] == '':
-		return render_template('login.html')
-	else:
-		return redirect(url_for('home'))
-
-# On Login Form Submit. Loads home page or shows error.
-@app.route('/login', methods=['POST'])
-def verify_credentials():
-
-	# Parse user input fields
-	name=request.form['login_username']
-	password=hashlib.sha256(request.form['login_password'].encode('utf-8')).hexdigest()
-
-	# Query Database
-	cursor = db.cursor()
-	cursor.execute("select * from user where username = '" + name + "' and password = '" + password + "';")
-	rows = cursor.fetchall()
-	error = None
-
-	if rows:
-		# User found
-		if rows[0][7] != 1:
-			# Not suspended
-			session['username'] = rows[0][0]
-			session['email'] = rows[0][2]
-			session['is_admin'] = rows[0][3]
-			session['name'] = rows[0][4]
-
-			# Set current trip id for this user.
-			query = get_current_trip_id()
-			cursor.execute(query)
-			trip_ids = cursor.fetchall()
-
-			if len(trip_ids) > 0:
-				# There are trips for this user. If no, just make it when they start adding attractions.
-				session['current_trip_id'] = trip_ids[0][0]
-
-			return redirect(url_for('home'))
-		else:
-			# Suspended user
-			error='User suspended.'
-	else:
-		# No such user. Login again.
-		error = 'Incorrect username or password. Please try again.'
-	return render_template('login.html', error=error)
-
-# Logs out of system and redirects to pictures.
-@app.route('/logout')
-def logout():
-
-	# Clear out session variables
-	session.clear()
-	return redirect(url_for('index'))
-
-# On Register Form Submit. Loads home page.
-# TODO: Re-fill out correct fields when registration fails.
-@app.route('/register', methods=['POST'])
-def register():
-
-	# Parse user input fields
-	name=request.form['register_username']
-	password1=hashlib.sha256(request.form['register_password'].encode('utf-8')).hexdigest()
-	password2=hashlib.sha256(request.form['register_password2'].encode('utf-8')).hexdigest()
-	firstname=request.form['register_firstname']
-	lastname=request.form['register_lastname']
-	email=request.form['register_email']
-	street=request.form['register_streetaddress']
-	city=request.form['register_city']
-	state=request.form['register_state']
-	country=request.form['register_country']
-	zipcode=request.form['register_zip']
-	customer_ob = Customer(name, password1,password2, email, firstname, lastname, street, city, state, country, zipcode)
-
-	error = customer_ob.validate_data()
-	if error != 0:
-		return render_template('login.html', error2=error, scroll="register")
-	insert_address_query,insert_username_query = customer_ob.create_query()
-	dbOb.insert(insert_address_query)
-	dbOb.insert(insert_username_query)
-
-	# Update current user session
-	session['username'] = name
-	session['name'] = firstname
-	session['is_admin'] = 0
-	session['email'] = email
-
-	return redirect(url_for('home'))
-
-
-#####################################################################
-#                        Activities                                 #
-#####################################################################
-
-def get_attractions_data():
-
-	cursor = db.cursor()
-	cursor.execute("select * from activities;")
-	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
-	return attractions
-
-# Shows all available attractions.
-@app.route('/attractions')
-def attractions():
-
-	attractions = get_attractions_data()
-	return render_template('attractions.html', items=attractions, session=session)
-
-# Receive attraction data to turn into an activity
-@app.route('/add-to-trip/<attraction_index>', methods=['POST'])
-def add_to_trip(attraction_index):
-
-	# TODO: Check if the attraction_name is on list of attractions
-	print(session['current_trip_id'])
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	cursor = db.cursor()
-
-	# Get attraction data
-	cursor.execute("select * from activities;")
-	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
-	attraction_name = attractions[int(attraction_index) - 1]['name']
-	db.commit()
-
-	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
-
-# Insert activity into database
-@app.route('/create-activity', methods=['POST', 'GET'])
-def create_activity():
-
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	# Get activity field data.
-	attraction_name = request.form['attraction_name']
-	activity_name = request.form['activity_name']
-	start_time = request.form['start_time']
-	end_time = request.form['end_time']
-	date = request.form['date']
-	cost = request.form['cost'][1:]
-
-	# Add attraction to trip
-	cursor = db.cursor()
-	query = add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost)
-	cursor.execute(query)
-	db.commit()
-
-	success = attraction_name + " added to My Trip!"
-	attractions = get_attractions_data()
-	return render_template('attractions.html', items=attractions, session=session, success=success)
-
-# Delete an attraction
-@app.route('/delete-attraction/<attraction_index>')
-def delete_attraction(attraction_index):
-
-	# Get attraction_name
-	cursor = db.cursor()
-	cursor.execute("select attraction.attraction_name from attraction natural join address;")
-	attraction_name = cursor.fetchall()[int(attraction_index) - 1][0]
-
-	# Delete from database
-	cursor.execute("delete from attraction where attraction_name='" + attraction_name + "';")
-	db.commit()
-	return redirect(url_for('home'))
-
-
-#####################################################################
-#                                TRIP                               #
-#####################################################################
-
-# Shows current trip itinerary.
-@app.route('/trip')
-def trip():
-
-	# Create a trip if none exists
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	# Get activity info for this trip
-	cursor = db.cursor()
-	query = get_all_activities_in_a_trip()
-	cursor.execute(query)
-	activities = [dict(date=row[0], name=row[1], price=row[2], start_time=row[3], end_time=row[4], id=row[5]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
-
-	# Calculate total cost of trip
-	query = get_trip_cost()
-	cursor.execute(query)
-	amount = cursor.fetchall()[0][0]
-	total_cost = str(amount)
-	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
-
-@app.route('/complete')
-def complete():
-
-	# Create a trip if none exists
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	# Pay if total cost > 0, else update trip_id record to "booked"
-	cursor = db.cursor()
-	query = get_trip_cost()
-	cursor.execute(query)
-	total_cost = cursor.fetchall()[0][0]
-
-	if total_cost is None:
-		total_cost = 0
-
-	if total_cost > 0:
-
-		# Check if a credit card is on file for this user.
-		query = "select creditcard_id from creditcard, user where user.username='" + session['username'] + "' and user.username=creditcard.username;"
-		cursor.execute(query)
-		num_cards = len(cursor.fetchall())
-
-		if num_cards == 0:
-			# No credit card on file
-			return render_template('payment.html', session=session, total_cost=total_cost)
-		else:
-			# Already have a credit card; they're fine.
-			return redirect(url_for('trip_booked'))
-	else:
-		return redirect(url_for('trip_booked'))
-
-@app.route('/pay', methods=['POST'])
-def pay():
-
-	# Create a trip if none exists
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	card_number="".join(request.form['card_number'].split('-'))
-	first_name=request.form['first_name']
-	last_name=request.form['last_name']
-	exp_month=request.form['expiration_month']
-	exp_year=request.form['expiration_year']
-
-	# Get Address ID
-	cursor = db.cursor()
-	cursor.execute("select address_id from user where username='" + session['username'] + "';")
-	address_id = cursor.fetchall()[0][0]
-
-	# Insert credit card information
-	query = "insert into creditcard (card_number, username, first_name, last_name, exp_month, exp_year, address_id) values ('" + card_number + "', '" + session['username'] + "', '" + first_name + "', '" + last_name + "', " + str(exp_month) + ", " + str(exp_year) + ", " + str(address_id) + ");"
-
-	return redirect(url_for('trip_booked'))
-
-# Render home page once a trip has been successfully booked.
-# TODO: Return a Trip ID so that a user can view their previous trips
-@app.route('/trip-booked')
-def trip_booked():
-
-	# Create a trip if none exists
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	cursor = db.cursor()
-	cursor.execute("update trip set is_booked=1 where trip_id=" + str(session['current_trip_id']) + ";")
-	db.commit()
-
-	session['current_trip_id'] = False
-	trip_booked_message = "Congratulations! You're all set!"
-
-	# Query database when user is admin for admin panel
-	if session['is_admin']:
-
-		# Get user table information.
-		cursor = db.cursor()
-		cursor.execute("select * from user;")
-		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
-
-		# Get attraction table information.
-		cursor.execute("select * from attraction natural join address;")
-		attractions = [dict(name=row[1], description=row[2], nearest_transport=row[3], 
-			address=(str(row[4]) if row[4] is not None else "") + " " + (row[5] if row[5] is not None else "") + " " + (row[6] if row[6] is not None else "") + ", " + (row[7] if row[7] is not None else "") + " " + (row[8] if row[8] is not None else "") + " " + (row[9] if row[9] is not None else "")) for row in cursor.fetchall()]
-
-		return render_template("home.html", session=session, users=users, attractions=attractions, trip_booked_message=trip_booked_message)
-
-	return render_template('home.html', session=session, trip_booked_message=trip_booked_message)
-
-def create_trip(no_error):
-
-	# Query database when user is admin for admin panel
-	if session['is_admin']:
-
-		# Get user table information.
-		cursor = db.cursor()
-		cursor.execute("select * from user;")
-		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
-
-		# Get attraction table information.
-		attractions = get_attractions_data()
-
-		if no_error:
-			return render_template("home.html", session=session, users=users, attractions=attractions, no_trip="Here, you can start making your first trip!")
-		else:
-			return render_template("home.html", session=session, users=users, attractions=attractions, no_trip_error="You must first create a new trip!")
-
-	# Not an admin
-	if no_error:
-		if 'current_trip_id' not in session or not session['current_trip_id']:
-			return render_template("home.html", session=session, no_trip="Here, you can start making a new trip!")
-		return render_template("home.html", session=session)
-	else:
-		return render_template("home.html", session=session, no_trip_error="You must first create a new trip!")
-
-# Create a new current trip id for the user
-@app.route('/new-trip', methods=['POST'])
-def new_trip():
-
-	start_date = request.form['start_date']
-	end_date = request.form['end_date']
-
-	cursor = db.cursor()
-	query = "insert into trip (is_booked, trip_start_date, trip_end_date, creditcard_id, username) values (0, '" + start_date + "', '" + end_date + "', 1, '" + session['username'] + "');"
-	cursor.execute(query)
-	db.commit()
-
-	# Set current trip id for this user.
-	query = get_current_trip_id()
-	cursor.execute(query)
-	session['current_trip_id'] = cursor.fetchall()[0][0]
-	return redirect(url_for('trip'))
-
-# Remove an activity from a trip
-@app.route('/remove-from-trip/<activity_id>')
-def remove_from_trip(activity_id):
-
-	# Find out which activity it is from index.
-	cursor = db.cursor()
-	cursor.execute("delete from activity where activity_id=" + activity_id + ";")
-	db.commit()
-
-	return redirect(url_for('trip'))
 
 #####################################################################
 #                         MAIN APPLICATION                          #

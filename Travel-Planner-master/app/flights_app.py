@@ -1,12 +1,16 @@
 from src.flight import Flight
 from flask import Flask, flash, render_template, request, redirect, session, url_for, Blueprint
-flight_blueprint = Blueprint('flight_blueprint', __name__)
+
 from src.database import Database
 
+from app.trip_app import create_trip
+flight_blueprint = Blueprint('flight_blueprint', __name__)
 #####################################################################
 #                             Flights                               #
 #####################################################################
 
+
+db = Database().db
 
 def get_flight_data():
 
@@ -16,11 +20,11 @@ def get_flight_data():
 	return flights
 
 # Shows all available attractions.
-@flight_blueprint.route('/view_flights')
+@flight_blueprint.route('/flights')
 def view_flights():
 
 	flights = get_flight_data()
-	return render_template('view_flights.html', items=flights, session=session)
+	return render_template('flights.html', items=flights, session=session)
 
 # Receive attraction data to turn into an activity
 @flight_blueprint.route('/add-to-flight/<attraction_index>', methods=['POST'])
@@ -42,15 +46,16 @@ def add_to_flight(attraction_index):
 	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
 
 # Insert activity into database
-@flight_blueprint.route('/flights', methods=['GET'])
+
+@flight_blueprint.route('/flights-admin', methods=['GET'])
 def add_flight():
-	return render_template('flights.html')
+	return render_template('flights-admin.html')
 
 @flight_blueprint.route('/flight/<int:flight_id>')
 def get_flight(flight_id):
     flight = Flight.get_flight_by_id(flight_id)
     if flight:
-        return render_template('flight.html', flight=flight)
+        return render_template('flights-admin.html', flight=flight)
     return "Flight not found."
 
 @flight_blueprint.route('/flights-create', methods=['POST'])
@@ -69,7 +74,7 @@ def create_flight():
 		fl_ob = Flight(airline_name, flight_number, departure_airport,departure_date, departure_time, arrival_airport, duration, price)
 		fl_ob.save()
 		return redirect('/home')
-	return render_template('flights.html')
+	return render_template('flights-admin.html')
 
 @flight_blueprint.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
 def edit_flight(flight_id):
@@ -91,5 +96,3 @@ def delete_flight(flight_id):
         flight.delete()
         return redirect('/')
     return "Flight not found."
-
-
