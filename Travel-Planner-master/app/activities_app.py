@@ -6,6 +6,14 @@ from src.database import Database
 activities_blueprint = Blueprint('activities_blueprint', __name__)
 db = Database().db
 
+def get_trip_cost():
+	return "select sum(price) from trip_common  where username=\"" + (session['username']) + "\"and is_booked = false;"
+
+def get_all_activities_in_a_trip():
+	# return "select activity_date, activity_name, cost, activity_start_time, activity_end_time, activity_id from activity natural join trip where username = '" + session['username'] + "' and is_booked = false;"
+	return "select * from trip_common where username = '" + session['username'] + "' and is_booked = false;";
+
+
 def create_trip(no_error):
 
 	# Query database when user is admin for admin panel
@@ -79,7 +87,16 @@ def add_to_trip(attraction_index):
 	query_trip_common = "INSERT INTO trip_common ( name ,price, username, is_booked) VALUES (%s, %s, %s, %s)"
 	cursor.execute(query_trip_common, values)
 	db.commit()
-	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
+	query = get_all_activities_in_a_trip()
+	cursor.execute(query)
+	activities = [dict(id = row[0], name=row[1], number=row[2],price=row[3]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
+	# Calculate total cost of trip
+	query = get_trip_cost()
+	cursor.execute(query)
+	amount = cursor.fetchall()[0][0]
+	# amount = 0
+	total_cost = str(amount)
+	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
 
 # Insert activity into database
 @activities_blueprint.route('/create-activity', methods=['POST', 'GET'])

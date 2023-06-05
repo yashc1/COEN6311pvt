@@ -8,6 +8,12 @@ flight_blueprint = Blueprint('flight_blueprint', __name__)
 #####################################################################
 #                             Flights                               #
 #####################################################################
+def get_trip_cost():
+	return "select sum(price) from trip_common  where username=\"" + (session['username']) + "\"and is_booked = false;"
+
+def get_all_activities_in_a_trip():
+	# return "select activity_date, activity_name, cost, activity_start_time, activity_end_time, activity_id from activity natural join trip where username = '" + session['username'] + "' and is_booked = false;"
+	return "select * from trip_common where username = '" + session['username'] + "' and is_booked = false;";
 
 
 db = Database().db
@@ -62,6 +68,7 @@ def create_flight():
 
 @flight_blueprint.route('/add-to-flight/<attraction_index>', methods=['POST'])
 def add_to_flight(attraction_index):
+	db = Database().db
 
 	# TODO: Check if the attraction_name is on list of attractions
 	print(session['current_trip_id'])
@@ -79,8 +86,15 @@ def add_to_flight(attraction_index):
 	query_trip_common = "INSERT INTO trip_common ( name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s)"
 	cursor.execute(query_trip_common, values)
 	db.commit()
-
-	return render_template('trip.html', session=session, attraction_name=flight_name)
+	query = get_all_activities_in_a_trip()
+	cursor.execute(query)
+	print(query)
+	activities = [dict(id = row[0], name=row[1], number=row[2],price=row[3]) for row in cursor.fetchall()]
+	query = get_trip_cost()
+	cursor.execute(query)
+	amount = cursor.fetchall()[0][0]
+	total_cost = str(amount)
+	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
 
 @flight_blueprint.route('/flight/edit/<int:flight_id>', methods=['GET', 'POST'])
 def edit_flight(flight_id):
