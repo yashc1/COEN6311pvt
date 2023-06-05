@@ -38,12 +38,20 @@ def add_to_hotels(attraction_index):
 	cursor = db.cursor()
 
 	# Get attraction data
-	cursor.execute("select * from activities;")
-	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
-	attraction_name = attractions[int(attraction_index) - 1]['name']
+	
+	cursor.execute("select * from hotels;")
+	db.commit()
+	hotels_selection = [dict(name=row[2], number=row[1],price=row[7]) for row in cursor.fetchall()]
+	hotel_name = hotels_selection[int(attraction_index) - 1]['name']
+	hotel_number = hotels_selection[int(attraction_index) - 1]['number']
+	hotel_price = hotels_selection[int(attraction_index) - 1]['price']
+	values = (hotel_name,hotel_price, hotel_number , session['username'], 0)
+	query_trip_common = "INSERT INTO trip_common ( name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s)"
+	cursor.execute(query_trip_common, values)
 	db.commit()
 
-	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
+	return render_template('trip.html', session=session, attraction_name=hotel_name)
+
 @hotels_blueprint.route('/hotels-admin', methods=['GET'])
 def add_hotels():
 	return render_template('hotels.html')

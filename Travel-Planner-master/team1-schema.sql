@@ -213,4 +213,15 @@ CREATE TABLE IF NOT EXISTS activities (
 	price DOUBLE PRECISION NOT NULL
 );
 
+-- create table with name , number as string, price
+DROP TABLE IF EXISTS trip_common;
+CREATE TABLE IF NOT EXISTS trip_common (
+	trip_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL,
+	number VARCHAR(50) ,
+	price DOUBLE PRECISION NOT NULL,
+	username VARCHAR(30) NOT NULL,
+	is_booked BOOLEAN NOT NULL,
+);
+
 -- write insert value command for hotels

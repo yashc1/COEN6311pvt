@@ -73,7 +73,12 @@ def add_to_trip(attraction_index):
 	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
 	attraction_name = attractions[int(attraction_index) - 1]['name']
 	db.commit()
-
+	name = attractions[int(attraction_index) - 1]['name']
+	price = attractions[int(attraction_index) - 1]['price']
+	values = (name,price, session['username'], 0)
+	query_trip_common = "INSERT INTO trip_common ( name ,price, username, is_booked) VALUES (%s, %s, %s, %s)"
+	cursor.execute(query_trip_common, values)
+	db.commit()
 	return render_template('create_activity.html', session=session, attraction_name=attraction_name)
 
 # Insert activity into database
@@ -94,6 +99,7 @@ def create_activity():
 	# Add attraction to trip
 	cursor = db.cursor()
 	query = add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost)
+	
 	cursor.execute(query)
 	db.commit()
 

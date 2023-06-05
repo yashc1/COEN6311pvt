@@ -11,10 +11,12 @@ def view_completed_attractions_query():
 	 return "select activity_date, attraction.attraction_name, description from activity natural join attraction where activity.username = '" + session['username'] + "' and ((activity_date = CURDATE() and activity_end_time <= CURTIME()) or activity_date < CURDATE());"
 
 def get_trip_cost():
-	return "select sum(cost) from activity join trip using (trip_id) where trip_id = " + str(session['current_trip_id']) + ";"
+	return "select sum(price) from trip_common  where username=\"" + (session['username']) + "\"and is_booked = false;"
 
 def get_all_activities_in_a_trip():
-	return "select activity_date, activity_name, cost, activity_start_time, activity_end_time, activity_id from activity natural join trip where username = '" + session['username'] + "' and is_booked = false;";
+	# return "select activity_date, activity_name, cost, activity_start_time, activity_end_time, activity_id from activity natural join trip where username = '" + session['username'] + "' and is_booked = false;"
+	return "select * from trip_common where username = '" + session['username'] + "' and is_booked = false;";
+
 
 def get_current_trip_id():
 	return "select trip_id from trip natural join user where trip.is_booked=false and user.username='" + session['username'] + "';"
@@ -35,18 +37,20 @@ def trip():
 
 	# Create a trip if none exists
 	if 'current_trip_id' not in session or not session['current_trip_id']:
+		print("No trip exists") 
 		return create_trip(no_error=False)
 
 	# Get activity info for this trip
+	db = Database().db
 	cursor = db.cursor()
 	query = get_all_activities_in_a_trip()
 	cursor.execute(query)
-	activities = [dict(date=row[0], name=row[1], price=row[2], start_time=row[3], end_time=row[4], id=row[5]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
-
+	activities = [dict(id = row[0], name=row[1], number=row[2],price=row[3]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
 	# Calculate total cost of trip
 	query = get_trip_cost()
 	cursor.execute(query)
 	amount = cursor.fetchall()[0][0]
+	# amount = 0
 	total_cost = str(amount)
 	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
 
@@ -115,7 +119,7 @@ def trip_booked():
 		return create_trip(no_error=False)
 
 	cursor = db.cursor()
-	cursor.execute("update trip set is_booked=1 where trip_id=" + str(session['current_trip_id']) + ";")
+	cursor.execute("update trip_common set is_booked=1 where username=\"" + str(session['username']) + "\";")
 	db.commit()
 
 	session['current_trip_id'] = False
@@ -188,7 +192,7 @@ def remove_from_trip(activity_id):
 
 	# Find out which activity it is from index.
 	cursor = db.cursor()
-	cursor.execute("delete from activity where activity_id=" + activity_id + ";")
+	cursor.execute("delete from trip_common where trip_id=" + activity_id + ";")
 	db.commit()
 
 	return redirect(url_for('trip_blueprint.trip'))
