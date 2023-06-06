@@ -217,11 +217,15 @@ CREATE TABLE IF NOT EXISTS activities (
 DROP TABLE IF EXISTS trip_common;
 CREATE TABLE IF NOT EXISTS trip_common (
 	trip_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	trip_trip_id INTEGER,
 	name VARCHAR(50) NOT NULL,
 	number VARCHAR(50) ,
 	price DOUBLE PRECISION NOT NULL,
 	username VARCHAR(30) NOT NULL,
 	is_booked BOOLEAN NOT NULL,
+
+	FOREIGN KEY (trip_trip_id) REFERENCES trip(trip_id)
+		ON DELETE CASCADE,
 );
 
 -- write insert value command for hotels

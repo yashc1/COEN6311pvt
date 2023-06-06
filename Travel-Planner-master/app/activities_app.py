@@ -83,8 +83,8 @@ def add_to_trip(attraction_index):
 	db.commit()
 	name = attractions[int(attraction_index) - 1]['name']
 	price = attractions[int(attraction_index) - 1]['price']
-	values = (name,price, session['username'], 0)
-	query_trip_common = "INSERT INTO trip_common ( name ,price, username, is_booked) VALUES (%s, %s, %s, %s)"
+	values = (session['current_trip_id'],name,price, session['username'], 0)
+	query_trip_common = "INSERT INTO trip_common ( trip_trip_id, name ,price, username, is_booked) VALUES (%s, %s, %s, %s, %s)"
 	cursor.execute(query_trip_common, values)
 	db.commit()
 	query = get_all_activities_in_a_trip()

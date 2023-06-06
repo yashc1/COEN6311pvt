@@ -56,35 +56,61 @@ def trip():
 
 @trip_blueprint.route('/complete')
 def complete():
-
-	# Create a trip if none exists
-	if 'current_trip_id' not in session or not session['current_trip_id']:
-		return create_trip(no_error=False)
-
-	# Pay if total cost > 0, else update trip_id record to "booked"
-	cursor = db.cursor()
-	query = get_trip_cost()
-	cursor.execute(query)
-	total_cost = cursor.fetchall()[0][0]
-
-	if total_cost is None:
-		total_cost = 0
-
-	if total_cost > 0:
-
-		# Check if a credit card is on file for this user.
-		query = "select creditcard_id from creditcard, user where user.username='" + session['username'] + "' and user.username=creditcard.username;"
-		cursor.execute(query)
-		num_cards = len(cursor.fetchall())
-
-		if num_cards == 0:
-			# No credit card on file
-			return render_template('payment.html', session=session, total_cost=total_cost)
-		else:
-			# Already have a credit card; they're fine.
-			return redirect(url_for('trip_blueprint.trip_booked'))
+	if session['is_admin']:
+		return create_agent_trip()
 	else:
-		return redirect(url_for('trip_blueprint.trip_booked'))
+     
+		# Create a trip if none exists
+		if 'current_trip_id' not in session or not session['current_trip_id']:
+			return create_trip(no_error=False)
+
+		# Pay if total cost > 0, else update trip_id record to "booked"
+		cursor = db.cursor()
+		query = get_trip_cost()
+		cursor.execute(query)
+		total_cost = cursor.fetchall()[0][0]
+
+		if total_cost is None:
+			total_cost = 0
+
+		if total_cost > 0:
+
+			# Check if a credit card is on file for this user.
+			query = "select creditcard_id from creditcard, user where user.username='" + session['username'] + "' and user.username=creditcard.username;"
+			cursor.execute(query)
+			num_cards = len(cursor.fetchall())
+
+			if num_cards == 0:
+				# No credit card on file
+				return render_template('payment.html', session=session, total_cost=total_cost)
+			else:
+				# Already have a credit card; they're fine.
+				return redirect(url_for('trip_blueprint.trip_booked'))
+		else:
+			return redirect(url_for('trip_blueprint.trip_booked'))
+
+def create_agent_trip():
+	cursor = db.cursor()
+	cursor.execute("update trip_common set is_booked=1 where username=\"" + str(session['username']) + "\";")
+	db.commit()
+	cursor.execute("update trip set is_booked=1 where trip_id=\"" + str(session['current_trip_id']) + "\";")
+	db.commit()
+
+	session['current_trip_id'] = False
+	trip_booked_message = "Package created successfully."
+    # Get user table information.
+	cursor = db.cursor()
+	cursor.execute("select * from user;")
+	users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
+
+	# Get attraction table information.
+	cursor.execute("select * from attraction natural join address;")
+	attractions = [dict(name=row[1], description=row[2], nearest_transport=row[3], 
+		address=(str(row[4]) if row[4] is not None else "") + " " + (row[5] if row[5] is not None else "") + " " + (row[6] if row[6] is not None else "") + ", " + (row[7] if row[7] is not None else "") + " " + (row[8] if row[8] is not None else "") + " " + (row[9] if row[9] is not None else "")) for row in cursor.fetchall()]
+
+	
+
+	return render_template("home.html", session=session, users=users, attractions=attractions, trip_booked_message=trip_booked_message)
 
 @trip_blueprint.route('/pay', methods=['POST'])
 def pay():
@@ -120,6 +146,8 @@ def trip_booked():
 
 	cursor = db.cursor()
 	cursor.execute("update trip_common set is_booked=1 where username=\"" + str(session['username']) + "\";")
+	db.commit()
+	cursor.execute("update trip set is_booked=1 where trip_id=\"" + str(session['current_trip_id']) + "\";")
 	db.commit()
 
 	session['current_trip_id'] = False

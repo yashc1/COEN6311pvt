@@ -53,8 +53,8 @@ def add_to_hotels(attraction_index):
 	hotel_name = hotels_selection[int(attraction_index) - 1]['name']
 	hotel_number = hotels_selection[int(attraction_index) - 1]['number']
 	hotel_price = hotels_selection[int(attraction_index) - 1]['price']
-	values = (hotel_name,hotel_price, hotel_number , session['username'], 0)
-	query_trip_common = "INSERT INTO trip_common ( name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s)"
+	values = (session['current_trip_id'], hotel_name,hotel_price, hotel_number , session['username'], 0)
+	query_trip_common = "INSERT INTO trip_common ( trip_trip_id, name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s, %s)"
 	cursor.execute(query_trip_common, values)
 	db.commit()
 	query = get_all_activities_in_a_trip()

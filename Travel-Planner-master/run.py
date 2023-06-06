@@ -17,7 +17,7 @@ import app.activities_app  as activities_app
 import app.trip_app as trip_app
 import app.login_app as login_app
 import app.booking_history as booking_history_app
-
+import app.package_app as package_app
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8ffe05624dfe0efdf7c7f67288d4f4ce5005e0dfb6a1bc48366ef9906dd0586e'
@@ -27,6 +27,7 @@ app.register_blueprint(activities_app.activities_blueprint, url_prefix='/')
 app.register_blueprint(trip_app.trip_blueprint, url_prefix='/')
 app.register_blueprint(login_app.login_blueprint, url_prefix='/')
 app.register_blueprint(booking_history_app.booking_blueprint, url_prefix='/')
+app.register_blueprint(package_app.package_blueprint, url_prefix='/')
 dbOb= Database()
 
 

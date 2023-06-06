@@ -82,8 +82,8 @@ def add_to_flight(attraction_index):
 	flight_name = flights_selection[int(attraction_index) - 1]['name']
 	flight_number = flights_selection[int(attraction_index) - 1]['number']
 	flight_price = flights_selection[int(attraction_index) - 1]['price']
-	values = (flight_name, flight_price,flight_number,  session['username'], 0)
-	query_trip_common = "INSERT INTO trip_common ( name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s)"
+	values = (session['current_trip_id'],flight_name, flight_price,flight_number,  session['username'], 0)
+	query_trip_common = "INSERT INTO trip_common ( trip_trip_id, name ,price,number, username, is_booked) VALUES (%s, %s, %s, %s, %s, %s)"
 	cursor.execute(query_trip_common, values)
 	db.commit()
 	query = get_all_activities_in_a_trip()
