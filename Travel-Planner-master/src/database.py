@@ -3,11 +3,12 @@ import pymysql
 class Database:
     
     def __init__(self):
-        db_pass = 'dummy%123'
+        db_pass = 'rootpass'
 
 	# Make sure your database is started before running run.py
         db_name = 'team1'
-        self.db = pymysql.connect(host='traveldatabase.cotbd4fsbm2q.us-east-1.rds.amazonaws.com', user='admin', passwd=db_pass, db=db_name)
+        self.	db = pymysql.connect(host='localhost', user='root', passwd=db_pass, db=db_name)
+
 
     def get_db (self):
         return self.db

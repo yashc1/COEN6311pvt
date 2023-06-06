@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}Packages | {{session.username}}{% endblock %}
+
+{% block content %}
+
+<div class="row">
+	<div class="col s12">
+		<h2>Welcome, {{session.name}}.</h2>
+		<p class="text-align">
+			Here are available packages .
+		</p>
+		<h4 class="center-align">Packages list</h4>
+		<table class="responsive-table centered">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Start Date</th>
+					<th>End Date</th>
+					<th>Username</th>
+					<th>Items</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for item in items %}
+				<tr>
+					<td>{{ item.id }}</td>
+					<td>{{ item.trip_start_date }}</td>
+					<td>{{ item.trip_end_date }}</td>
+					<td>{{ item.username }}</td>
+					<td>{{ item.names }}</td>
+					<!-- <td><a class="waves-effect waves-light btn" href="/remove-from-trip/{{ item.id }}">Remove</a></td> -->
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		<hr/>
+	</div>
+</div>
+{% endblock %}
