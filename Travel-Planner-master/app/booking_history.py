@@ -37,4 +37,31 @@ def booking_trip():
 	amount = cursor.fetchall()[0][0]
 	# amount = 0
 	total_cost = str(amount)
-	return render_template('booking-history.html', items=activities, session=session, total_cost=total_cost)
+ 
+	#packages
+	sql = '''
+            SELECT pb.trip_id, t.trip_start_date, t.trip_end_date, pb.customer_username,
+                   (SELECT GROUP_CONCAT(name SEPARATOR ', ')
+                    FROM trip_common
+                    WHERE trip_trip_id = t.trip_id) AS items
+            FROM package_booking pb
+            INNER JOIN trip t ON pb.trip_id = t.trip_id
+            WHERE pb.customer_username = %s
+            '''
+	cursor.execute(sql, (session['username'],))
+
+	rows = cursor.fetchall()
+            
+	# Convert rows to a list of dictionaries
+	package_bookings = []
+	for row in rows:
+		package_booking = {
+			'trip_id': row[0],
+			'trip_start_date': str(row[1]),
+			'trip_end_date': str(row[2]),
+			'customer_username': row[3],
+			'itenary': row[4]
+		}
+		package_bookings.append(package_booking)
+	print(package_bookings)
+	return render_template('booking-history.html', package_bookings=package_bookings, items=activities, session=session, total_cost=total_cost)

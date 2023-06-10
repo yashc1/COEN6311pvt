@@ -228,4 +228,16 @@ CREATE TABLE IF NOT EXISTS trip_common (
 		ON DELETE CASCADE,
 );
 
--- write insert value command for hotels
+DROP TABLE IF EXISTS package_booking;
+CREATE TABLE IF NOT EXISTS package_booking (
+	package_booking_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	trip_id INTEGER,
+	customer_username VARCHAR(30),
+	
+	FOREIGN KEY (trip_id) REFERENCES trip(trip_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (customer_username) REFERENCES user(username)
+		ON DELETE CASCADE
+);
+
+

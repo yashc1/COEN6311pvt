@@ -29,10 +29,28 @@
 				{% endfor %}
 			</tbody>
 		</table>
-		<hr/>
-		<h5>Total Cost:</h5>
-		<p style="color: green">{{ total_cost }}</p>
-		<a class="waves-effect waves-light btn" href="/complete">Complete Trip</a>
+		
+		<h4 class="center-align">Packages History</h4>
+		<table>
+			<thead>
+				<tr>
+					<th>Trip ID</th>
+					<th>Start Date</th>
+					<th>End Date</th>
+					<th>Username</th>
+					<th>Items</th>
+				</tr>
+			</thead>
+			{% for booking in package_bookings %}
+				<tr>
+					<td>{{ booking.trip_id }}</td>
+					<td>{{ booking.trip_start_date }}</td>
+					<td>{{ booking.trip_end_date }}</td>
+					<td>{{ booking.customer_username }}</td>
+					<td>{{ booking.itenary }}</td>
+				</tr>
+			{% endfor %}
+		</table>
 	</div>
 </div>
 {% endblock %}

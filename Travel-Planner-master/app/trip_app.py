@@ -3,7 +3,7 @@ from src.database import Database
 from app.activities_app import get_attractions_data
 
 trip_blueprint = Blueprint('trip_blueprint', __name__)
-
+is_package = False
 #####################################################################
 #                          SQL Queries                              #
 #####################################################################
@@ -224,3 +224,31 @@ def remove_from_trip(activity_id):
 	db.commit()
 
 	return redirect(url_for('trip_blueprint.trip'))
+
+@trip_blueprint.route('/book-package/<trip_id>')
+def book_package(trip_id):
+	session['current_trip_id']=trip_id
+	cursor = db.cursor()
+	insert_query = "INSERT INTO package_booking (trip_id, customer_username) VALUES (%s, %s)"
+	values = (trip_id, session['username'])
+	cursor.execute(insert_query, values)
+	
+	sql = "SELECT SUM(price) AS total_cost FROM trip_common WHERE trip_trip_id = %s"
+	cursor.execute(sql, (trip_id,))
+	total_cost = cursor.fetchone()[0]
+	
+ 
+ 	# check payment
+	query = "select creditcard_id from creditcard, user where user.username='" + session['username'] + "' and user.username=creditcard.username;"
+	cursor.execute(query)
+	num_cards = len(cursor.fetchall())
+ 
+	if num_cards == 0:
+		# No credit card on file
+		return render_template('payment.html', session=session, total_cost=total_cost)
+	else:
+		# Already have a credit card; they're fine.
+		return redirect(url_for('trip_blueprint.trip_booked'))
+
+
+
