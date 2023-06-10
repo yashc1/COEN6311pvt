@@ -89,7 +89,7 @@ def add_to_trip(attraction_index):
 	db.commit()
 	query = get_all_activities_in_a_trip()
 	cursor.execute(query)
-	activities = [dict(id = row[0], name=row[1], number=row[2],price=row[3]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
+	activities = [dict(id = row[0], name=row[2], number=row[3],price=row[4]) for row in cursor.fetchall()] # TODO: Correctly map activity info.
 	# Calculate total cost of trip
 	query = get_trip_cost()
 	cursor.execute(query)

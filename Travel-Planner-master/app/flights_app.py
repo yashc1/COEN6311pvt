@@ -89,7 +89,7 @@ def add_to_flight(attraction_index):
 	query = get_all_activities_in_a_trip()
 	cursor.execute(query)
 	print(query)
-	activities = [dict(id = row[0], name=row[1], number=row[2],price=row[3]) for row in cursor.fetchall()]
+	activities = [dict(id = row[0], name=row[2], number=row[3],price=row[4]) for row in cursor.fetchall()]
 	query = get_trip_cost()
 	cursor.execute(query)
 	amount = cursor.fetchall()[0][0]
