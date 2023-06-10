@@ -154,3 +154,5 @@ if __name__ == '__main__':
 	db = Database().get_db()
 	# Note: If your database uses a different password, enter it here.
 	app.run(debug=True, host='0.0.0.0', port=8000)
+
+
