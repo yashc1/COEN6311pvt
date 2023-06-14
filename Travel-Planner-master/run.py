@@ -65,6 +65,7 @@ def create_trip(no_error):
 	if session['is_admin']:
 
 		# Get user table information.
+		db = Database().db
 		cursor = db.cursor()
 		cursor.execute("select * from user;")
 		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
@@ -113,7 +114,8 @@ def home():
 # Delete user from admin panel
 @app.route('/delete-user/<username>')
 def delete_user(username):
-
+	
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("delete from user where username='" + username + "';")
 	db.commit()
@@ -124,6 +126,7 @@ def delete_user(username):
 @app.route('/suspend-user/<username>')
 def suspend_user(username):
 
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select suspended from user where username='" + username + "';")
 	if cursor.fetchall()[0][0] == 1:
@@ -138,6 +141,7 @@ def suspend_user(username):
 @app.route('/make-admin/<username>')
 def make_admin(username):
 
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("update user set is_admin=1 where username='" + username + "';")
 	db.commit()

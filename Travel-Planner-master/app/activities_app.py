@@ -20,6 +20,7 @@ def create_trip(no_error):
 	if session['is_admin']:
 
 		# Get user table information.
+		db = Database().db
 		cursor = db.cursor()
 		cursor.execute("select * from user;")
 		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
@@ -52,7 +53,7 @@ def add_attraction_to_trip(attraction_name, activity_name, start_time, end_time,
 
 
 def get_attractions_data():
-
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select * from activities;")
 	attractions = [dict(name=row[1], description=row[2], address=row[3],price=row[4]) for row in cursor.fetchall()]
@@ -73,7 +74,7 @@ def add_to_trip(attraction_index):
 	print(session['current_trip_id'])
 	if 'current_trip_id' not in session or not session['current_trip_id']:
 		return create_trip(no_error=False)
-
+	db = Database().db
 	cursor = db.cursor()
 
 	# Get attraction data
@@ -114,6 +115,7 @@ def create_activity():
 	cost = request.form['cost'][1:]
 
 	# Add attraction to trip
+	db = Database().db
 	cursor = db.cursor()
 	query = add_attraction_to_trip(attraction_name, activity_name, start_time, end_time, date, cost)
 	
@@ -129,6 +131,7 @@ def create_activity():
 def delete_attraction(attraction_index):
 
 	# Get attraction_name
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select attraction.attraction_name from attraction natural join address;")
 	attraction_name = cursor.fetchall()[int(attraction_index) - 1][0]

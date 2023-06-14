@@ -37,6 +37,7 @@ def verify_credentials():
 	password=hashlib.sha256(request.form['login_password'].encode('utf-8')).hexdigest()
 
 	# Query Database
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select * from user where username = '" + name + "' and password = '" + password + "';")
 	rows = cursor.fetchall()
@@ -118,6 +119,7 @@ def register():
 
 @login_blueprint.route('/edit-user/<username>')
 def edit_user(username):
+    db = Database().db
     cursor = db.cursor()
     query = """SELECT u.username, u.email, u.is_admin, u.first_name, u.last_name, u.suspended,
             a.street_no, a.street_name, a.city, a.state, a.country, a.zip
@@ -143,6 +145,7 @@ async def update_user():
 	customer_ob = Customer(name, "","", email, firstname, lastname, street, city, state, country, zipcode)
 
 	# Get Address ID
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select address_id from user where username='" + name + "';")
 	address_id = cursor.fetchall()[0][0]

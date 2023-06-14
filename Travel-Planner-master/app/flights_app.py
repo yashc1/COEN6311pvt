@@ -20,6 +20,7 @@ db = Database().db
 
 def get_flight_data():
 
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("select * from flights;")
 	flights = [dict(flight_number=row[1], airline_name=row[2], departure_date=row[3],departure_time=row[4],departure_airport=row[5],arrival_airport=row[6],duration=row[7],price=row[8]) for row in cursor.fetchall()]
