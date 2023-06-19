@@ -1,6 +1,7 @@
 from flask import Flask, flash, render_template, request, redirect, session, url_for, Blueprint
 from src.database import Database
 from app.activities_app import get_attractions_data
+from app.stripePayment import stripePayment as sp
 
 trip_blueprint = Blueprint('trip_blueprint', __name__)
 is_package = False
@@ -70,6 +71,8 @@ def complete():
 		cursor.execute(query)
 		total_cost = cursor.fetchall()[0][0]
 
+
+
 		if total_cost is None:
 			total_cost = 0
 
@@ -124,16 +127,25 @@ def pay():
 	last_name=request.form['last_name']
 	exp_month=request.form['expiration_month']
 	exp_year=request.form['expiration_year']
-
-	# Get Address ID
-	cursor = db.cursor()
-	cursor.execute("select address_id from user where username='" + session['username'] + "';")
-	address_id = cursor.fetchall()[0][0]
-
-	# Insert credit card information
-	query = "insert into creditcard (card_number, username, first_name, last_name, exp_month, exp_year, address_id) values ('" + card_number + "', '" + session['username'] + "', '" + first_name + "', '" + last_name + "', " + str(exp_month) + ", " + str(exp_year) + ", " + str(address_id) + ");"
-
-	return redirect(url_for('trip_blueprint.trip_booked'))
+	cvv= request.form['CVV']
+	#---------Integreate Strip Here----------------
+	stripeOb= sp()
+	valid = stripeOb.generate_card_token(card_number,exp_month,exp_year,cvv)
+	if valid:
+		# Get Address ID
+		query = get_trip_cost()
+		cursor.execute(query)
+		total_cost = cursor.fetchall()[0][0]
+		cursor = db.cursor()
+		cursor.execute("select address_id from user where username='" + session['username'] + "';")
+		address_id = cursor.fetchall()[0][0]
+		
+		if total_cost is None:
+			total_cost = 0
+		stripeOb.create_payment_charge("tok_visa", int(total_cost))
+		# Insert credit card information
+		query = "insert into creditcard (card_number, username, first_name, last_name, exp_month, exp_year, address_id) values ('" + card_number + "', '" + session['username'] + "', '" + first_name + "', '" + last_name + "', " + str(exp_month) + ", " + str(exp_year) + ", " + str(address_id) + ");"
+		return redirect(url_for('trip_blueprint.trip_booked'))
 
 # Render home page once a trip has been successfully booked.
 # TODO: Return a Trip ID so that a user can view their previous trips
