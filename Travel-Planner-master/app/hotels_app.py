@@ -68,9 +68,9 @@ def add_to_hotels(attraction_index):
 	total_cost = str(amount)
 	return render_template('trip.html', items=activities, session=session, total_cost=total_cost)
 
-@hotels_blueprint.route('/hotels-admin', methods=['GET'])
+@hotels_blueprint.route('/addHotels', methods=['GET'])
 def add_hotels():
-	return render_template('hotels.html')
+	return render_template('hotels-admin.html')
 
 
 

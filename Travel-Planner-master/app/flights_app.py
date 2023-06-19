@@ -36,7 +36,7 @@ def view_flights():
 
 # Insert activity into database
 
-@flight_blueprint.route('/flights-admin', methods=['GET'])
+@flight_blueprint.route('/addFlights', methods=['GET'])
 def add_flight():
 	return render_template('flights-admin.html')
 

@@ -17,11 +17,12 @@
         <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}"/>
       <title>{% block title %}{% endblock %}</title>
   </head>
-
+  {% if session.is_admin == 1 %}
+  <h4>Agent Panel</h4>
+  {% endif %}
   <body>
     <main>
         <!-- Navigation bar -->
-        {% if session.is_admin == 0 %}
         <nav>
             <div class="nav-wrapper grey darken-4">
                 <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
@@ -46,35 +47,6 @@
                 </ul>
             </div>
         </nav>
-        {% endif %}
-        {% if session.is_admin == 1 %}
-        <nav>
-            <div class="nav-wrapper grey darken-4">
-                <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
-                <ul class="left hide-on-med-and-down nav-bar">
-                    <li><a href="/home">Home</a></li>
-                    <li><a href="/trip">My Trip</a></li>
-                    <li><a href="/attractions">Browse Activities</a></li>
-                    <li><a href="/flights">Flights</a></li>
-                    <li><a href="/hotels">Hotels</a></li>
-                    <li><a href="/booking-history">Bookings</a></li>
-                    <li><a href="/addFlights">Add Flights</a></li>
-                    <li><a href="/addHotels">Add Hotels</a></li>
-
-                </ul>
-                <ul class="right hide-on-med-and-down nav-bar">
-                    <li><a href="/logout">Log Out</a></li>
-                </ul>
-                <ul class="side-nav nav-bar grey darken-4" id="mobile-demo">
-                    <li><a href="/home" style="font-color: white">Home</a></li>
-                    <li><a href="/trip">My Trip</a></li>
-                    <li><a href="/attractions">Browse Attractions</a></li>
-                    <li><a href="/review">Write a Review</a></li>
-                    <li><a href="/logout">Log Out</a></li>
-                </ul>
-            </div>
-        </nav>
-        {% endif %}
         <!-- Page Body -->
         <div class="container">
             <div class="right-align">
