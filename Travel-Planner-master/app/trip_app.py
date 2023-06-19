@@ -57,6 +57,8 @@ def trip():
 
 @trip_blueprint.route('/complete')
 def complete():
+	db = Database().db
+	cursor = db.cursor()
 	if session['is_admin']:
 		return create_agent_trip()
 	else:
@@ -76,23 +78,18 @@ def complete():
 		if total_cost is None:
 			total_cost = 0
 
-		if total_cost > 0:
+		print("Total cost: " + str(total_cost))
+		# if total_cost > 0:
 
-			# Check if a credit card is on file for this user.
-			query = "select creditcard_id from creditcard, user where user.username='" + session['username'] + "' and user.username=creditcard.username;"
-			cursor.execute(query)
-			num_cards = len(cursor.fetchall())
-
-			if num_cards == 0:
-				# No credit card on file
-				return render_template('payment.html', session=session, total_cost=total_cost)
-			else:
-				# Already have a credit card; they're fine.
-				return redirect(url_for('trip_blueprint.trip_booked'))
-		else:
-			return redirect(url_for('trip_blueprint.trip_booked'))
+		return render_template('payment.html', session=session, total_cost=total_cost)
+			# else:
+			# 	# Already have a credit card; they're fine.
+			# 	return redirect(url_for('trip_blueprint.trip_booked'))
+		# else:
+		# 	return redirect(url_for('trip_blueprint.trip_booked'))
 
 def create_agent_trip():
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("update trip_common set is_booked=1 where username=\"" + str(session['username']) + "\";")
 	db.commit()
@@ -121,6 +118,8 @@ def pay():
 	# Create a trip if none exists
 	if 'current_trip_id' not in session or not session['current_trip_id']:
 		return create_trip(no_error=False)
+	db = Database().db
+	cursor = db.cursor()
 
 	card_number="".join(request.form['card_number'].split('-'))
 	first_name=request.form['first_name']
@@ -131,6 +130,7 @@ def pay():
 	#---------Integreate Strip Here----------------
 	stripeOb= sp()
 	valid = stripeOb.generate_card_token(card_number,exp_month,exp_year,cvv)
+	print(valid)
 	if valid:
 		# Get Address ID
 		query = get_trip_cost()
@@ -146,16 +146,29 @@ def pay():
 		# Insert credit card information
 		query = "insert into creditcard (card_number, username, first_name, last_name, exp_month, exp_year, address_id) values ('" + card_number + "', '" + session['username'] + "', '" + first_name + "', '" + last_name + "', " + str(exp_month) + ", " + str(exp_year) + ", " + str(address_id) + ");"
 		return redirect(url_for('trip_blueprint.trip_booked'))
+	else:
+		# Invalid credit card information
+		return redirect(url_for('trip_blueprint.book_failed'))
 
-# Render home page once a trip has been successfully booked.
-# TODO: Return a Trip ID so that a user can view their previous trips
+
+@trip_blueprint.route('/book-failed')
+def book_failed():
+
+	# Create a trip if none exists
+	if 'current_trip_id' not in session or not session['current_trip_id']:
+		return create_trip(no_error=False)
+
+	trip_booked_message = "Invalid credit card information."
+	return render_template('home.html', session=session, trip_booked_message=trip_booked_message)
+
+
 @trip_blueprint.route('/trip-booked')
 def trip_booked():
 
 	# Create a trip if none exists
 	if 'current_trip_id' not in session or not session['current_trip_id']:
 		return create_trip(no_error=False)
-
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("update trip_common set is_booked=1 where username=\"" + str(session['username']) + "\";")
 	db.commit()
@@ -188,6 +201,8 @@ def create_trip(no_error):
 	if session['is_admin']:
 
 		# Get user table information.
+		db = Database().db
+		cursor = db.cursor()
 		cursor = db.cursor()
 		cursor.execute("select * from user;")
 		users = [dict(is_admin="Yes" if row[3] == 1 else "No", username=row[0], password=row[1], first_name=row[4], last_name=row[5], email=row[2], suspended="Yes" if row[7] == 1 else "No") for row in cursor.fetchall()]
@@ -214,7 +229,7 @@ def new_trip():
 
 	start_date = request.form['start_date']
 	end_date = request.form['end_date']
-
+	db = Database().db
 	cursor = db.cursor()
 	query = "insert into trip (is_booked, trip_start_date, trip_end_date, creditcard_id, username) values (0, '" + start_date + "', '" + end_date + "', 1, '" + session['username'] + "');"
 	cursor.execute(query)
@@ -231,6 +246,7 @@ def new_trip():
 def remove_from_trip(activity_id):
 
 	# Find out which activity it is from index.
+	db = Database().db
 	cursor = db.cursor()
 	cursor.execute("delete from trip_common where trip_id=" + activity_id + ";")
 	db.commit()
@@ -240,6 +256,7 @@ def remove_from_trip(activity_id):
 @trip_blueprint.route('/book-package/<trip_id>')
 def book_package(trip_id):
 	session['current_trip_id']=trip_id
+	db = Database().db
 	cursor = db.cursor()
 	insert_query = "INSERT INTO package_booking (trip_id, customer_username) VALUES (%s, %s)"
 	values = (trip_id, session['username'])
