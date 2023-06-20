@@ -2,13 +2,6 @@
 {% block title %}Flights | {{session.username}}{% endblock %}
 
 {% block content %}
-{% if session.is_admin == 1 %}
-<div>
-<form action="/addHotels" method="GET">
-	<td><button class="btn waves-effect waves-light" type="submit" name="action">Create Hotels<i class="material-icons right">send</i></td>
-	</form>
-</div>
-{% endif %}
 <div class="row">
 	<div class="col s12">
 		<h2>View Hotels</h2>
@@ -50,6 +43,18 @@
 				{% endfor %}
 			</tbody>
 		</table>
+
+		{% if session.is_admin == 1 %}
+		<div>
+		<form action="/addHotels" method="GET"  style="
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		">
+			<td><button class="btn waves-effect waves-light" type="submit" style="margin-top: 48px;" name="action"><i class="material-icons left">add</i>Create Hotels</td>
+			</form>
+		</div>
+		{% endif %}
 	</div>
 </div>
 {% endblock %}

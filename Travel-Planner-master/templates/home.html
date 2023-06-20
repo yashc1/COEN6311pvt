@@ -41,96 +41,10 @@
 					<td>{{ item.last_name }}</td>
 					<td>{{ item.email }}</td>
 					<td>{{ item.suspended }}</td>
-					<td><a class="waves-effect waves-light btn" href="/delete-user/{{ item.username }}">Delete</a></td>
-					<td><a class="waves-effect waves-light btn" href="/suspend-user/{{ item.username }}">{% if item.suspended=='Yes' %}Unsuspend{% else %}Suspend{% endif %}</a></td>
-					<td><a class="waves-effect waves-light btn" href="/make-admin/{{ item.username }}">Make Admin</a></td>
-					<td><a class="waves-effect waves-light btn" href="/edit-user/{{ item.username }}">Edit User</a></td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-		<h3 class="center-align">Manage Attractions</h3><br />
-		<div class="center-align"><a class="waves-effect waves-light btn" href="/add-attraction">Add a new Attraction</a></div><br />
-		<table class="responsive-table centered">
-			<thead>
-				<tr>
-					<th>Hours</th>
-					<th>Name</th>
-					<th>Description</th>
-					<th>Address</th>
-					<th>Nearest Public Transport</th>
-					<th>Time Slots</th>
-					<th>Update Attraction</th>
-					<th>Delete Attraction</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for item in attractions %}
-				<tr>
-					<td>
-						  <ul class="collapsible" data-collapsible="expandable">
-						    <li>
-						      <div class="collapsible-header">Hours</div>
-						      <div class="collapsible-body">
-						<table>
-							<thead>
-								<tr>
-									<th>Day</th>
-									<th>Start Time</th>
-									<th>End Time</th>
-								</tr>
-							</thead>
-							<tbody>
-							{% for hour in item.hours %}
-							<tr>
-								<td>{{ hour.day }}</td>
-								<td>{{ hour.hour_start_time }}</td>
-								<td>{{ hour.hour_end_time }}</td>
-							</tr>
-							{% endfor %}
-							</tbody>
-						</table>
-						</div>
-						    </li>
-						</ul>
-					</td>
-					<td>{{ item.name }}</td>
-					<td>{{ item.description }}</td>
-					<td>{{ item.address }}</td>
-					<td>{{ item.nearest_transport }}</td>
-					<td>
-						{% if item.timeslots %}
-						  <ul class="collapsible" data-collapsible="expandable">
-						    <li>
-						      <div class="collapsible-header">Timeslots</div>
-						      <div class="collapsible-body">
-							<table>
-								<thead>
-									<tr>
-									<th>ID</th>
-									<th># Spots</th>
-									<th>Start Time</th>
-									<th>End Time</th>
-									</tr>
-								</thead>
-								<tbody>
-							{% for timeslot in item.timeslots %}
-								<tr>
-									<td>{{ timeslot.id }}</td>
-									<td>{{ timeslot.num_remaining }}</td>
-									<td>{{ timeslot.start_time }}</td>
-									<td>{{ timeslot.end_time }}</td>
-								</tr>
-							{% endfor %}
-								</tbody>
-							</table>
-								</div>
-						    </li>
-						</ul>
-						{% endif %}
-					</td>
-					<td><a class="waves-effect waves-light btn" href="/update-attraction/{{ loop.index }}">Update</a></td>
-					<td><a class="waves-effect waves-light btn" href="/delete-attraction/{{ loop.index }}">Delete</a></td>
+					<td><a class="waves-effect waves-light btn" href="/delete-user/{{ item.username }}"><i class="material-icons">delete</i></a></td>
+					<td><a class="waves-effect waves-light btn" href="/suspend-user/{{ item.username }}">{% if item.suspended=='Yes' %}<i class="material-icons">play_arrow</i>{% else %}<i class="material-icons">pause</i>{% endif %}</a></td>
+					<td><a class="waves-effect waves-light btn" href="/make-admin/{{ item.username }}"><i class="material-icons">arrow_upward</i></a></td>
+					<td><a class="waves-effect waves-light btn" href="/edit-user/{{ item.username }}"><i class="material-icons">edit</i></a></td>
 				</tr>
 				{% endfor %}
 			</tbody>

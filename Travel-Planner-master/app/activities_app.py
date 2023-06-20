@@ -1,5 +1,6 @@
 
 
+from src.activity import Activity
 from flask import Flask, flash, render_template, request, redirect, session, url_for, Blueprint
 
 from src.database import Database
@@ -141,3 +142,21 @@ def delete_attraction(attraction_index):
 	db.commit()
 	return redirect(url_for('home'))
 
+
+@activities_blueprint.route('/add-activity', methods=['GET'])
+def add_flight():
+	return render_template('add_activity.html')
+
+@activities_blueprint.route('/activity-create', methods=['POST'])
+def create_flight():
+    
+	if request.method == 'POST':
+		activity_name = request.form['activity_name']
+		activity_desc = request.form['activity_desc']
+		activity_address = request.form['activity_address']
+		price = request.form['price']
+		price = request.form['price']
+		activity_object = Activity(activity_name, activity_desc, activity_address,price)
+		activity_object.save()
+		return redirect('/attractions')
+	return render_template('add_activity.html')
